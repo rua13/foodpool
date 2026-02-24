@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1058649520805",
+    "project_id": "foodpool-1de3b",
+    "storage_bucket": "foodpool-1de3b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1058649520805:android:42f09d8e5837c3b543ab4c",
+        "android_client_info": {
+          "package_name": "com.example.foodpool"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1058649520805-po6b6irq1eu65o8rq4glf9lt86oh2i3d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-bUjOi4N-EP3DizBVjKbKaaioV7artc8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1058649520805-po6b6irq1eu65o8rq4glf9lt86oh2i3d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
