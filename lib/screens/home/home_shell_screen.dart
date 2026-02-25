@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodpool/models/user_model.dart';
 import 'package:foodpool/repositories/user_repository.dart';
+import 'package:foodpool/screens/onboarding/community_guide_dialog.dart';
 import 'package:foodpool/widgets/order_card.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -34,16 +35,7 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => AlertDialog(
-          title: const Text('커뮤니티 가이드'),
-          content: const Text('로그인할 때마다 보여주기로 설정된 안내입니다.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('확인'),
-            ),
-          ],
-        ),
+        builder: (_) => CommunityGuideDialog()
       );
 
       // ✅ 다시 안 뜨게 true로 변경
