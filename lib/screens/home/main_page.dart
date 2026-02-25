@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:foodpool/widgets/order_card.dart';
 
 class MainPage extends StatefulWidget {
@@ -95,141 +96,121 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFBF8),
-      body: Stack(
-        children: [
-          const Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            height: 60,
-            child: ColoredBox(color: Color(0xFFFFFAF7)),
-          ),
-          Positioned(
-            left: -0.17,
-            right: 0,
-            top: 60,
-            child: Container(
-              width: 402.33,
-              height: 127.97,
-              padding: const EdgeInsets.only(top: 15.99, left: 23.99, right: 23.99),
-              decoration: const BoxDecoration(color: Color(0xFFFFFBF8)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      floatingActionButton: _WriteButton(onTap: widget.onTapWrite),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              const SizedBox(height: 16),
+              Row(
                 children: [
-                  const SizedBox(
-                    width: double.infinity,
-                    height: 36,
-                    child: Text(
-                      'FOODPOOL',
-                      style: TextStyle(
-                        color: Color(0xFFFF5751),
-                        fontSize: 24,
-                        fontFamily: 'Unbounded',
-                        fontWeight: FontWeight.w700,
-                        height: 1.50,
-                        letterSpacing: 0.07,
+                  Expanded(
+                    child: SizedBox(
+                      height: 36,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'FOODPOOL',
+                          style: GoogleFonts.unbounded(
+                            color: const Color(0xFFFF5751),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            height: 1.50,
+                            letterSpacing: 0.07,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 15.99),
-                  _OrderSegment(
-                    showMyOrders: _showMyOrders,
-                    onSelectAll: () => _setOrderMode(false),
-                    onSelectMine: () => _setOrderMode(true),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: widget.onTapProfile,
+                    child: SvgPicture.asset(
+                      'lib/assets/icons/profile.svg',
+                      width: 28,
+                      height: 28,
+                    ),
                   ),
                 ],
               ),
-            ),
-          ),
-          Positioned(
-            left: 346.18,
-            top: 79.99,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: widget.onTapProfile,
-              child: SvgPicture.asset(
-                'lib/assets/icons/profile.svg',
-                width: 28,
-                height: 28,
+              const SizedBox(height: 16),
+              _OrderSegment(
+                showMyOrders: _showMyOrders,
+                onSelectAll: () => _setOrderMode(false),
+                onSelectMine: () => _setOrderMode(true),
               ),
-            ),
-          ),
-          Positioned(
-            left: 24,
-            right: 24,
-            top: 188,
-            bottom: 0,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 220),
-              reverseDuration: const Duration(milliseconds: 220),
-              switchInCurve: Curves.easeOut,
-              switchOutCurve: Curves.linear,
-              layoutBuilder: (currentChild, previousChildren) {
-                final children = <Widget>[...previousChildren];
-                if (currentChild != null) children.add(currentChild);
+              const SizedBox(height: 15),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  reverseDuration: const Duration(milliseconds: 220),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.linear,
+                  layoutBuilder: (currentChild, previousChildren) {
+                    final children = <Widget>[...previousChildren];
+                    if (currentChild != null) children.add(currentChild);
 
-                return Stack(
-                  alignment: Alignment.topCenter,
-                  children: children,
-                );
-              },
-              transitionBuilder: (child, animation) {
-                final isIncoming = child.key == ValueKey<bool>(_showMyOrders);
+                    return Stack(
+                      alignment: Alignment.topCenter,
+                      children: children,
+                    );
+                  },
+                  transitionBuilder: (child, animation) {
+                    final isIncoming = child.key == ValueKey<bool>(_showMyOrders);
 
-                final fadeIn = Tween<double>(
-                  begin: 0.86,
-                  end: 1,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: const Cubic(0.2, 0.0, 0.0, 1.0),
-                  ),
-                );
+                    final fadeIn = Tween<double>(
+                      begin: 0.86,
+                      end: 1,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: const Cubic(0.2, 0.0, 0.0, 1.0),
+                      ),
+                    );
 
-                final fadeOut = TweenSequence<double>([
-                  TweenSequenceItem<double>(
-                    tween: ConstantTween<double>(1),
-                    weight: 35,
-                  ),
-                  TweenSequenceItem<double>(
-                    tween: Tween<double>(begin: 1, end: 0),
-                    weight: 65,
-                  ),
-                ]).animate(
-                  CurvedAnimation(
-                    parent: ReverseAnimation(animation),
-                    curve: Curves.easeOut,
-                  ),
-                );
+                    final fadeOut = TweenSequence<double>([
+                      TweenSequenceItem<double>(
+                        tween: ConstantTween<double>(1),
+                        weight: 35,
+                      ),
+                      TweenSequenceItem<double>(
+                        tween: Tween<double>(begin: 1, end: 0),
+                        weight: 65,
+                      ),
+                    ]).animate(
+                      CurvedAnimation(
+                        parent: ReverseAnimation(animation),
+                        curve: Curves.easeOut,
+                      ),
+                    );
 
-                return FadeTransition(
-                  opacity: isIncoming ? fadeIn : fadeOut,
-                  child: child,
-                );
-              },
-              child: ListView.separated(
-                key: ValueKey<bool>(_showMyOrders),
-                padding: const EdgeInsets.only(bottom: 96),
-                itemCount: _visibleOrders.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 15),
-                itemBuilder: (context, index) {
-                  final order = _visibleOrders[index];
-                  return _OrderCard(
-                    data: order,
-                    onTap: widget.onTapOrder == null
-                        ? null
-                        : () => widget.onTapOrder!(order.orderId),
-                  );
-                },
+                    return FadeTransition(
+                      opacity: isIncoming ? fadeIn : fadeOut,
+                      child: child,
+                    );
+                  },
+                  child: ListView.separated(
+                    key: ValueKey<bool>(_showMyOrders),
+                    padding: const EdgeInsets.only(bottom: 110),
+                    itemCount: _visibleOrders.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 15),
+                    itemBuilder: (context, index) {
+                      final order = _visibleOrders[index];
+                      return _OrderCard(
+                        data: order,
+                        onTap: widget.onTapOrder == null
+                            ? null
+                            : () => widget.onTapOrder!(order.orderId),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-          Positioned(
-            left: 148.85,
-            top: 806.82,
-            child: _WriteButton(onTap: widget.onTapWrite),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -374,55 +355,55 @@ class _OrderCard extends StatelessWidget {
               ),
             ],
           ),
-          child: Stack(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    data.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF0A0A0A),
-                      fontSize: 18,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                      height: 1.5,
-                      letterSpacing: -0.44,
+                  Expanded(
+                    child: Text(
+                      data.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF0A0A0A),
+                        fontSize: 18,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w700,
+                        height: 1.5,
+                        letterSpacing: -0.44,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _InfoLine(
-                    iconPath: 'lib/assets/icons/clock.svg',
-                    text: data.time,
-                    bold: true,
-                    iconSize: 20,
-                  ),
-                  const SizedBox(height: 12),
-                  _InfoLine(
-                    iconPath: 'lib/assets/icons/store.svg',
-                    text: data.store,
-                    iconSize: 18,
-                  ),
-                  const SizedBox(height: 8),
-                  _InfoLine(
-                    iconPath: 'lib/assets/icons/card.svg',
-                    text: data.price,
-                    iconSize: 18,
-                  ),
-                  const SizedBox(height: 8),
-                  _InfoLine(
-                    iconPath: 'lib/assets/icons/location.svg',
-                    text: data.place,
-                    iconSize: 18,
-                  ),
+                  const SizedBox(width: 12),
+                  _StatusChip(status: data.status),
                 ],
               ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: _StatusChip(status: data.status),
+              const SizedBox(height: 12),
+              _InfoLine(
+                iconPath: 'lib/assets/icons/clock.svg',
+                text: data.time,
+                bold: true,
+                iconSize: 20,
+              ),
+              const SizedBox(height: 12),
+              _InfoLine(
+                iconPath: 'lib/assets/icons/store.svg',
+                text: data.store,
+                iconSize: 18,
+              ),
+              const SizedBox(height: 8),
+              _InfoLine(
+                iconPath: 'lib/assets/icons/card.svg',
+                text: data.price,
+                iconSize: 18,
+              ),
+              const SizedBox(height: 8),
+              _InfoLine(
+                iconPath: 'lib/assets/icons/location.svg',
+                text: data.place,
+                iconSize: 18,
               ),
             ],
           ),
@@ -517,63 +498,60 @@ class _WriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      minimum: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(9999),
-        onTap: onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            minHeight: 44,
-            minWidth: 104.3,
+    return InkWell(
+      borderRadius: BorderRadius.circular(9999),
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: 44,
+          minWidth: 104.3,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: ShapeDecoration(
+            color: const Color(0xFFFF5751),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
+            shadows: const [
+              BoxShadow(
+                color: Color(0x19000000),
+                blurRadius: 6,
+                offset: Offset(0, 4),
+                spreadRadius: -4,
+              ),
+              BoxShadow(
+                color: Color(0x19000000),
+                blurRadius: 15,
+                offset: Offset(0, 10),
+                spreadRadius: -3,
+              ),
+            ],
           ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: ShapeDecoration(
-              color: const Color(0xFFFF5751),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
-              shadows: const [
-                BoxShadow(
-                  color: Color(0x19000000),
-                  blurRadius: 6,
-                  offset: Offset(0, 4),
-                  spreadRadius: -4,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  'lib/assets/icons/card.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter:
+                      const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                 ),
-                BoxShadow(
-                  color: Color(0x19000000),
-                  blurRadius: 15,
-                  offset: Offset(0, 10),
-                  spreadRadius: -3,
+                const SizedBox(width: 8),
+                const Text(
+                  '글쓰기',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
+                    height: 1.43,
+                    letterSpacing: -0.15,
+                  ),
                 ),
               ],
-            ),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    'lib/assets/icons/card.svg',
-                    width: 20,
-                    height: 20,
-                    colorFilter:
-                        const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    '글쓰기',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w500,
-                      height: 1.43,
-                      letterSpacing: -0.15,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
