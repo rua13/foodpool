@@ -19,7 +19,7 @@ class OrderRepository {
   Stream<QuerySnapshot<Map<String, dynamic>>> watchMyOrders(String uid) {
     return _svc.ordersCol()
         .where('memberIds', arrayContains: uid)
-        .orderBy('createdAt', descending: true)
+        // .orderBy('createdAt', descending: true)
         .snapshots();
   }
 

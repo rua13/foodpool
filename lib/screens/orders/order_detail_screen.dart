@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../../providers/order_provider.dart';
 
 class OrderDetailScreen extends StatelessWidget {
   const OrderDetailScreen({super.key, required this.orderId});
@@ -7,16 +10,12 @@ class OrderDetailScreen extends StatelessWidget {
   final String orderId;
 
   Future<void> _joinAndGoChat(BuildContext context) async {
-    // TODO(FOODPOOL):
-    // 1) OrderProvider.joinOrder(orderId) (Callable Function 호출)
-    // 2) 성공하면 채팅 화면으로 이동
-    //
-    // 예:
-    // await context.read<OrderProvider>().joinOrder(orderId);
-    // if (!context.mounted) return;
-    // context.push('/order/$orderId/chat');
+    // ✅ 요구 UX: "채팅하기 버튼 누르면 참여(join) + 채팅 이동"
+    // 아직 joinOrder가 없다면 아래 TODO부터 구현하면 됨.
+    await context.read<OrderProvider>().joinOrder(orderId);
 
-    context.push('/order/$orderId/chat'); // 임시
+    if (!context.mounted) return;
+    context.push('/order/$orderId/chat');
   }
 
   @override
@@ -27,7 +26,8 @@ class OrderDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              // TODO(FOODPOOL): order 삭제(방장만) => OrderProvider.deleteOrder(orderId)
+              // TODO: 방장만 삭제 가능하도록 Provider/Cloud Function/Rules와 연결
+              // context.read<OrderProvider>().deleteOrder(orderId);
             },
             icon: const Icon(Icons.delete_outline),
           )
@@ -47,18 +47,6 @@ class OrderDetailScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => _joinAndGoChat(context),
                 child: const Text('채팅하기'),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                onPressed: () async {
-                  // TODO(FOODPOOL): join만 하고 stay (내 주문에 추가만)
-                  // await context.read<OrderProvider>().joinOrder(orderId);
-                },
-                child: const Text('주문 참여(내 주문에 추가)'),
               ),
             ),
           ],

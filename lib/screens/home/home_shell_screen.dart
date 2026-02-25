@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../providers/app_auth_provider.dart';
+import '../../repositories/order_repository.dart';
 
 class HomeShellScreen extends StatelessWidget {
   const HomeShellScreen({super.key});
@@ -35,16 +37,12 @@ class HomeShellScreen extends StatelessWidget {
         ),
         body: const TabBarView(
           children: [
-            _AllRoomsTab(),
-            _MyRoomsTab(),
+            _AllOrdersTab(),
+            _MyOrdersTab(),
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            // TODO(FOODPOOL): 공동주문 만들기 화면으로 이동
-            context.push('/create');
-            // - Navigator면: Navigator.push(...)
-          },
+          onPressed: () => context.push('/create'),
           child: const Icon(Icons.edit),
         ),
       ),
@@ -52,31 +50,112 @@ class HomeShellScreen extends StatelessWidget {
   }
 }
 
-class _AllRoomsTab extends StatelessWidget {
-  const _AllRoomsTab();
+class _AllOrdersTab extends StatelessWidget {
+  const _AllOrdersTab();
 
   @override
   Widget build(BuildContext context) {
-    // TODO(FOODPOOL):
-    // - rooms 전체 공개 목록 스트림 연결
-    // - 참여중 방 상단 / 마감 방 하단 정렬(초기엔 클라 정렬 추천)
-    return const Center(
-      child: Text('전체 방 목록 (TODO)'),
+    final repo = context.read<OrderRepository>();
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: repo.watchAllOrders(),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return Center(child: Text('오류: ${snap.error}'));
+        }
+        if (!snap.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snap.data!.docs;
+        if (docs.isEmpty) {
+          return const Center(child: Text('아직 생성된 주문이 없어요.'));
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: docs.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, i) {
+            final d = docs[i];
+            final data = d.data();
+
+            final title = (data['title'] ?? '').toString();
+            final store = (data['storeName'] ?? '').toString();
+            final isClosed = (data['isClosed'] ?? false) == true;
+
+            Timestamp? endAtTs;
+            final rawEndAt = data['endAt'];
+            if (rawEndAt is Timestamp) endAtTs = rawEndAt;
+
+            return ListTile(
+              tileColor: Colors.grey.shade50,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              title: Text(title.isEmpty ? '(제목 없음)' : title),
+              subtitle: Text([
+                if (store.isNotEmpty) store,
+                if (endAtTs != null) '마감: ${endAtTs.toDate()}',
+                if (isClosed) '마감됨',
+              ].join(' · ')),
+              onTap: () => context.push('/order/${d.id}'),
+            );
+          },
+        );
+      },
     );
   }
 }
 
-class _MyRoomsTab extends StatelessWidget {
-  const _MyRoomsTab();
+class _MyOrdersTab extends StatelessWidget {
+  const _MyOrdersTab();
 
   @override
   Widget build(BuildContext context) {
-    // TODO(FOODPOOL):
-    // - rooms.where(memberIds array-contains uid)
-    // - "퇴장한 방은 안 보이게" => memberIds에 없으면 자동 제외(요구사항과 일치)
-    // - 마감된 방만 띄우려면 endAt <= now 필터(초기엔 클라에서 필터)
-    return const Center(
-      child: Text('내 주문(참여 중/마감) (TODO)'),
+    final auth = context.watch<AppAuthProvider>();
+    final uid = auth.user?.uid;
+
+    if (uid == null) {
+      return const Center(child: Text('로그인이 필요합니다.'));
+    }
+
+    final repo = context.read<OrderRepository>();
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: repo.watchMyOrders(uid),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return Center(child: Text('오류: ${snap.error}'));
+        }
+        if (!snap.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snap.data!.docs;
+        if (docs.isEmpty) {
+          return const Center(child: Text('참여 중인 주문이 없어요.'));
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: docs.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (context, i) {
+            final d = docs[i];
+            final data = d.data();
+
+            final title = (data['title'] ?? '').toString();
+            final store = (data['storeName'] ?? '').toString();
+
+            return ListTile(
+              tileColor: Colors.blue.shade50.withOpacity(0.25),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              title: Text(title.isEmpty ? '(제목 없음)' : title),
+              subtitle: Text(store.isEmpty ? '가게명 없음' : store),
+              onTap: () => context.push('/order/${d.id}'),
+            );
+          },
+        );
+      },
     );
   }
 }
