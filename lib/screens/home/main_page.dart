@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:foodpool/widgets/order_card.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({
     super.key,
+    required this.allOrders,
+    required this.myOrders,
     this.onTapWrite,
     this.onTapProfile,
     this.onTapOrder,
   });
+
+  final List<OrderCardData> allOrders;
+  final List<OrderCardData> myOrders;
+
 
   final VoidCallback? onTapWrite;
   final VoidCallback? onTapProfile;
@@ -25,44 +32,9 @@ class _MainPageState extends State<MainPage> {
     setState(() => _showMyOrders = showMyOrders);
   }
 
-  final List<_OrderCardData> _allOrders = const [
-    _OrderCardData(
-      orderId: 'order-1',
-      title: '마라탕 드실 분!',
-      time: '17:05',
-      store: '행복한마라탕 법원점',
-      price: '19,900',
-      place: '소라',
-    ),
-    _OrderCardData(
-      orderId: 'order-2',
-      title: '고바콤',
-      time: '18:30',
-      store: '굽네치킨 양덕점',
-      price: '19,900',
-      place: '비전관',
-    ),
-    _OrderCardData(
-      orderId: 'order-3',
-      title: '대왕비빔밥 (육회 비빔밥)',
-      time: '16:55',
-      store: '고기듬뿍대왕비빔밥 본점',
-      price: '20,000',
-      place: '현동홀',
-    ),
-    _OrderCardData(
-      orderId: 'order-4',
-      title: '요아정',
-      time: '17:05',
-      store: '행복한마라탕 법원점',
-      price: '19,900',
-      place: '소라',
-    ),
-  ];
-
-  List<_OrderCardData> get _visibleOrders {
-    if (!_showMyOrders) return _allOrders;
-    return _allOrders.take(2).toList(growable: false);
+  List<OrderCardData> get _visibleOrders {
+    if (!_showMyOrders) return widget.allOrders;
+    return widget.allOrders;
   }
 
   @override
@@ -145,7 +117,7 @@ class _MainPageState extends State<MainPage> {
                     separatorBuilder: (_, _) => const SizedBox(height: 15),
                     itemBuilder: (context, index) {
                       final order = _visibleOrders[index];
-                      return _OrderCard(
+                      return OrderCard(
                         data: order,
                         onTap: widget.onTapOrder == null
                             ? null
@@ -260,132 +232,6 @@ class _SegmentButton extends StatelessWidget {
   }
 }
 
-class _OrderCard extends StatelessWidget {
-  const _OrderCard({
-    required this.data,
-    this.onTap,
-  });
-
-  final _OrderCardData data;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20.61, 20.61, 20.61, 20.61),
-          decoration: ShapeDecoration(
-            color: Colors.white,
-            shape: RoundedRectangleBorder(
-              side: BorderSide(
-                width: 0.62,
-                color: Colors.black.withValues(alpha: 0.10),
-              ),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            shadows: const [
-              BoxShadow(
-                color: Color(0x19000000),
-                blurRadius: 2,
-                offset: Offset(0, 1),
-                spreadRadius: -1,
-              ),
-              BoxShadow(
-                color: Color(0x19000000),
-                blurRadius: 3,
-                offset: Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                data.title,
-                style: const TextStyle(
-                  color: Color(0xFF0A0A0A),
-                  fontSize: 18,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w700,
-                  height: 1.5,
-                  letterSpacing: -0.44,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _InfoLine(
-                iconPath: 'lib/assets/icons/clock.svg',
-                text: data.time,
-                bold: true,
-                iconSize: 20,
-              ),
-              const SizedBox(height: 12),
-              _InfoLine(
-                iconPath: 'lib/assets/icons/store.svg',
-                text: data.store,
-              ),
-              const SizedBox(height: 8),
-              _InfoLine(
-                iconPath: 'lib/assets/icons/card.svg',
-                text: data.price,
-              ),
-              const SizedBox(height: 8),
-              _InfoLine(
-                iconPath: 'lib/assets/icons/location.svg',
-                text: data.place,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoLine extends StatelessWidget {
-  const _InfoLine({
-    required this.iconPath,
-    required this.text,
-    this.bold = false,
-    this.iconSize = 18,
-  });
-
-  final String iconPath;
-  final String text;
-  final bool bold;
-  final double iconSize;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SvgPicture.asset(
-          iconPath,
-          width: iconSize,
-          height: iconSize,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              color: bold ? const Color(0xFF0A0A0A) : const Color(0xB20A0A0A),
-              fontSize: bold ? 16 : 14,
-              fontFamily: 'Inter',
-              fontWeight: bold ? FontWeight.w500 : FontWeight.w400,
-              height: bold ? 1.5 : 1.43,
-              letterSpacing: bold ? -0.31 : -0.15,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _WriteButton extends StatelessWidget {
   const _WriteButton({required this.onTap});
 
@@ -446,22 +292,4 @@ class _WriteButton extends StatelessWidget {
       ),
     );
   }
-}
-
-class _OrderCardData {
-  const _OrderCardData({
-    required this.orderId,
-    required this.title,
-    required this.time,
-    required this.store,
-    required this.price,
-    required this.place,
-  });
-
-  final String orderId;
-  final String title;
-  final String time;
-  final String store;
-  final String price;
-  final String place;
 }
