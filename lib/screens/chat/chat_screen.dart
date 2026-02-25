@@ -1,5 +1,14 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+
+import '../../providers/order_chat_provider.dart';
+import '../../repositories/order_chat_repository.dart';
+import '../../models/order_member_model.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -20,56 +29,38 @@ class _ChatScreenState extends State<ChatScreen> {
   final _textCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
 
-  static const Map<String, String> _orderTitleById = {
-    'order-1': '마라탕 드실 분!',
-    'order-2': '고바콤',
-    'order-3': '대왕비빔밥 (육회 비빔밥)',
-    'order-4': '요아정',
-  };
+  StreamSubscription? _orderSub;
+  String _title = '공동주문';
+  int _participantCount = 1;
 
-  final List<_ChatMessage> _messages = [
-    const _ChatMessage(
-      text: '저 꿔바로우만 주문 가능할까요?',
-      timeText: '오전  11:10',
-      isMine: true,
-      senderName: '나',
-    ),
-    const _ChatMessage(
-      text: '안녕하세요',
-      timeText: '오전  11:10',
-      isMine: true,
-      senderName: '나',
-    ),
-    const _ChatMessage(
-      text: '안녕하세요!',
-      timeText: '오전  11:10',
-      isMine: false,
-      senderName: '신겸호',
-      senderEmail: '2400001@handong.ac.kr',
-      senderPhotoUrl: 'https://placehold.co/89x89',
-    ),
-    const _ChatMessage(
-      text: '네 가능합니다 :)',
-      timeText: '오전  11:10',
-      isMine: false,
-      senderName: '신겸호',
-      senderEmail: '2400001@handong.ac.kr',
-      senderPhotoUrl: 'https://placehold.co/89x89',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+
+    // 1) 메시지 구독 시작
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<OrderChatProvider>().startListening(widget.orderId);
+    });
+
+    // 2) 헤더용 order 문서 구독 (title, memberCount)
+    final repo = context.read<OrderChatRepository>();
+    _orderSub = repo.watchOrderSnap(widget.orderId).listen((snap) {
+      final data = snap.data();
+      if (data == null) return;
+
+      setState(() {
+        _title = (data['title'] ?? '공동주문').toString();
+        _participantCount = (data['memberCount'] is int) ? data['memberCount'] as int : 1;
+      });
+    });
+  }
 
   @override
   void dispose() {
     _textCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
-  }
-
-  String get _orderTitle => _orderTitleById[widget.orderId] ?? '마라탕 드실 분!';
-
-  int get _participantCount {
-    final hasOpponent = _messages.any((m) => !m.isMine);
-    return hasOpponent ? 2 : 1;
   }
 
   String _formatKoreanTime(DateTime dt) {
@@ -90,73 +81,46 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _textCtrl.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add(
-        _ChatMessage(
-          text: text,
-          timeText: _formatKoreanTime(DateTime.now()),
-          isMine: true,
-          senderName: '나',
-        ),
-      );
-    });
-    _textCtrl.clear();
+    try {
+      await context.read<OrderChatProvider>().sendText(text);
+      _textCtrl.clear();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollCtrl.hasClients) return;
-      _scrollCtrl.animateTo(
-        _scrollCtrl.position.maxScrollExtent + 160,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-      );
-    });
-  }
-
-  List<Widget> _buildMessageWidgets() {
-    final widgets = <Widget>[];
-
-    for (var i = 0; i < _messages.length; i++) {
-      final message = _messages[i];
-
-      if (message.isMine) {
-        widgets.add(_MyMessageRow(message: message));
-      } else {
-        final prev = i > 0 ? _messages[i - 1] : null;
-        final showProfile =
-            prev == null || prev.isMine || prev.senderName != message.senderName;
-
-        widgets.add(
-          _OtherMessageRow(
-            message: message,
-            showProfile: showProfile,
-            onTapProfile: () {
-              context.push(
-                '/profile/view',
-                extra: PublicProfileData(
-                  name: message.senderName,
-                  email: message.senderEmail ?? '-',
-                  photoUrl: message.senderPhotoUrl,
-                ),
-              );
-            },
-          ),
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_scrollCtrl.hasClients) return;
+        _scrollCtrl.animateTo(
+          _scrollCtrl.position.maxScrollExtent + 160,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
         );
-      }
-
-      widgets.add(const SizedBox(height: 8));
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('전송 실패: $e')),
+      );
     }
-
-    return widgets;
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>().currentUser;
-    final displayName = user?.displayName.trim() ?? '';
-    final fallbackFromEmail =
-        FirebaseAuth.instance.currentUser?.email?.split('@').first ?? '';
-    final joinName =
-        displayName.isNotEmpty ? displayName : (fallbackFromEmail.isNotEmpty ? fallbackFromEmail : '참여자');
+    final myUid = FirebaseAuth.instance.currentUser?.uid;
+
+    final chat = context.watch<OrderChatProvider>();
+    final messages = chat.messages;
+
+    // “참여 알림” 표시 이름(내 이름) — members 업서트가 됐으면 membersByUid에서 가져와도 됨
+    final me = (myUid == null) ? null : chat.membersByUid[myUid];
+    final joinName = (me?.displayName.trim().isNotEmpty == true)
+        ? me!.displayName
+        : (FirebaseAuth.instance.currentUser?.displayName?.trim().isNotEmpty == true
+            ? FirebaseAuth.instance.currentUser!.displayName!.trim()
+            : (FirebaseAuth.instance.currentUser?.email?.split('@').first ?? '참여자'));
+    // final user = context.watch<UserProvider>().currentUser;
+    // final displayName = user?.displayName.trim() ?? '';
+    // final fallbackFromEmail =
+    //     FirebaseAuth.instance.currentUser?.email?.split('@').first ?? '';
+    // final joinName =
+    //     displayName.isNotEmpty ? displayName : (fallbackFromEmail.isNotEmpty ? fallbackFromEmail : '참여자');
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFFBF8),
@@ -164,13 +128,15 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           children: [
             _ChatHeader(
-              title: _orderTitle,
+              title: _title,
               participantCount: _participantCount,
               onTapBack: () => Navigator.of(context).maybePop(),
               onTapExit: () => Navigator.of(context).maybePop(),
             ),
             Expanded(
-              child: ListView(
+              child: chat.isLoading 
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
                 controller: _scrollCtrl,
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
                 children: [
@@ -178,7 +144,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(height: 16),
                   _JoinNoticeChip(text: _joinNoticeText(joinName)),
                   const SizedBox(height: 16),
-                  ..._buildMessageWidgets(),
+                  ..._buildMessageWidgets(
+                    context,
+                    messages: messages,
+                    myUid: myUid,
+                    membersByUid: chat.membersByUid,
+                  ),
                 ],
               ),
             ),
@@ -190,6 +161,63 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+  List<Widget> _buildMessageWidgets(
+    BuildContext context, {
+    required List messages,
+    required String? myUid,
+    required Map<String, OrderMember> membersByUid,
+  }) {
+    final widgets = <Widget>[];
+
+    for (var i = 0; i < messages.length; i++) {
+      final m = messages[i];
+
+      final isMine = (myUid != null && m.senderId == myUid);
+
+      final senderProfile = membersByUid[m.senderId];
+      final senderName = senderProfile?.displayName ?? '';
+      final senderPhotoUrl = senderProfile?.photoUrl ?? '';
+
+      final timeText = _formatKoreanTime(m.createdAt);
+
+      final view = _ChatMessageView(
+        text: m.text,
+        timeText: timeText,
+        isMine: isMine,
+        senderName: senderName.isEmpty ? '사용자' : senderName,
+        senderPhotoUrl: senderPhotoUrl,
+      );
+
+      if (view.isMine) {
+        widgets.add(_MyMessageRow(message: view));
+      } else {
+        final prev = i > 0 ? messages[i - 1] : null;
+        final prevSenderId = prev?.senderId as String?;
+        final showProfile = prev == null || prevSenderId != m.senderId;
+
+        widgets.add(
+          _OtherMessageRow(
+            message: view,
+            showProfile: showProfile,
+            onTapProfile: () {
+              context.push(
+                '/profile/view',
+                extra: PublicProfileData(
+                  name: senderName,
+                  email: '-',
+                  photoUrl: senderPhotoUrl,
+                ),
+              );
+            },
+          ),
+        );
+      }
+
+      widgets.add(const SizedBox(height: 8));
+    }
+
+    return widgets;
   }
 }
 
@@ -415,7 +443,7 @@ class _JoinNoticeChip extends StatelessWidget {
 class _MyMessageRow extends StatelessWidget {
   const _MyMessageRow({required this.message});
 
-  final _ChatMessage message;
+  final _ChatMessageView message;
 
   @override
   Widget build(BuildContext context) {
@@ -475,7 +503,7 @@ class _OtherMessageRow extends StatelessWidget {
     required this.onTapProfile,
   });
 
-  final _ChatMessage message;
+  final _ChatMessageView message;
   final bool showProfile;
   final VoidCallback onTapProfile;
 
@@ -668,8 +696,9 @@ class _ChatInputBar extends StatelessWidget {
   }
 }
 
-class _ChatMessage {
-  const _ChatMessage({
+/// ✅ 기존 UI 위젯을 최대한 안 깨기 위해 “뷰 모델”을 하나 둠
+class _ChatMessageView {
+  const _ChatMessageView({
     required this.text,
     required this.timeText,
     required this.isMine,

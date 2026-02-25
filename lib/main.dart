@@ -9,17 +9,17 @@ import 'firebase_options.dart';
 // ====== Services / Repositories / Providers (Foodpool에 맞게 경로 수정) ======
 import 'services/user_service.dart';
 import 'services/order_service.dart';
-// import 'services/chat_service.dart';
+import 'services/order_chat_service.dart';
 
 import 'repositories/user_repository.dart';
 import 'repositories/order_repository.dart';
-// import 'repositories/chat_repository.dart';
+import 'repositories/order_chat_repository.dart';
 
 import 'providers/app_auth_provider.dart';
 import 'providers/user_provider.dart';
 // (선택) order/chat provider가 있으면 추가
 import 'providers/order_provider.dart';
-// import 'providers/chat_provider.dart';
+import 'providers/order_chat_provider.dart';
 
 // ====== Screens ======
 import 'screens/init_gate.dart';
@@ -41,12 +41,12 @@ Future<void> main() async {
         // --- Services ---
         Provider(create: (_) => UserService()),
         Provider(create: (_) => OrderService()),
-        // Provider(create: (_) => ChatService()),
+        Provider(create: (_) => OrderChatService()),
 
         // --- Repositories ---
         Provider(create: (ctx) => UserRepository(ctx.read<UserService>())),
         Provider(create: (ctx) => OrderRepository(ctx.read<OrderService>())),
-        // Provider(create: (ctx) => ChatRepository(ctx.read<ChatService>())),
+        Provider(create: (ctx) => OrderChatRepository(ctx.read<OrderChatService>())),
 
         // --- Providers ---
         ChangeNotifierProvider(
@@ -60,7 +60,7 @@ Future<void> main() async {
 
         // (선택) 추후 도메인 provider
         ChangeNotifierProvider(create: (ctx) => OrderProvider(ctx.read<OrderRepository>())),
-        // ChangeNotifierProvider(create: (ctx) => ChatProvider(ctx.read<ChatRepository>())),
+        ChangeNotifierProvider(create: (ctx) => OrderChatProvider(ctx.read<OrderChatRepository>())),
       ],
       child: const MyApp(),
     ),
