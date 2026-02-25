@@ -23,9 +23,9 @@ import 'providers/user_provider.dart';
 // ====== Screens ======
 import 'screens/init_gate.dart';
 import 'screens/home/home_shell_screen.dart';
-// import 'screens/rooms/room_detail_screen.dart';
-// import 'screens/rooms/create_room_screen.dart';
-// import 'screens/chat/chat_screen.dart';
+import 'screens/rooms/room_detail_screen.dart';
+import 'screens/rooms/create_room_screen.dart';
+import 'screens/chat/chat_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,26 +86,26 @@ class MyApp extends StatelessWidget {
           builder: (context, state) => const HomeShellScreen(),
         ),
 
-        // GoRoute(
-        //   path: '/create',
-        //   builder: (context, state) => const CreateRoomScreen(),
-        // ),
+        GoRoute(
+          path: '/create',
+          builder: (context, state) => const CreateRoomScreen(),
+        ),
 
-        // GoRoute(
-        //   path: '/room/:roomId',
-        //   builder: (context, state) {
-        //     final roomId = state.pathParameters['roomId']!;
-        //     return RoomDetailScreen(roomId: roomId);
-        //   },
-        // ),
+        GoRoute(
+          path: '/room/:roomId',
+          builder: (context, state) {
+            final roomId = state.pathParameters['roomId']!;
+            return RoomDetailScreen(roomId: roomId);
+          },
+        ),
 
-        // GoRoute(
-        //   path: '/room/:roomId/chat',
-        //   builder: (context, state) {
-        //     final roomId = state.pathParameters['roomId']!;
-        //     return ChatScreen(roomId: roomId); // A안: roomId만
-        //   },
-        // ),
+        GoRoute(
+          path: '/room/:roomId/chat',
+          builder: (context, state) {
+            final roomId = state.pathParameters['roomId']!;
+            return ChatScreen(roomId: roomId); // A안: roomId만
+          },
+        ),
       ],
 
       // ✅ redirect는 "안전장치"로만 최소 적용
