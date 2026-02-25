@@ -44,6 +44,10 @@
 	<string>1058649520805-032hb4eel0ucvscndkfpr4emi2f971kv.apps.googleusercontent.com</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>신고를 위한 증거 사진을 업로드하려면 사진 보관함 접근 권한이 필요합니다.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>신고를 위한 증거 이미지를 앱에서 사용할 수 있도록 사진 접근 권한이 필요합니다.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

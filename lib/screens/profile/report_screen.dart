@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'public_profile_screen.dart';
 
@@ -23,8 +27,10 @@ class _ReportScreenState extends State<ReportScreen> {
   ];
 
   final _detailCtrl = TextEditingController();
+  final _imagePicker = ImagePicker();
+
   String? _selectedReason;
-  bool _hasEvidence = false;
+  List<XFile> _evidenceImages = [];
 
   @override
   void dispose() {
@@ -34,6 +40,103 @@ class _ReportScreenState extends State<ReportScreen> {
 
   bool get _canSubmit =>
       _selectedReason != null && _detailCtrl.text.trim().isNotEmpty;
+
+  Future<void> _pickEvidenceImages() async {
+    try {
+      final images = await _imagePicker.pickMultiImage();
+      if (images.isEmpty || !mounted) return;
+      setState(() => _evidenceImages = images);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('사진을 불러오지 못했습니다.')),
+      );
+    }
+  }
+
+  Widget _evidenceThumb(XFile image) {
+    if (kIsWeb) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          image.path,
+          width: 80,
+          height: 80,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.file(
+        File(image.path),
+        width: 80,
+        height: 80,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
+  Widget _buildEvidenceBody() {
+    if (_evidenceImages.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset(
+              'lib/assets/icons/camera.svg',
+              width: 28,
+              height: 28,
+              colorFilter:
+                  const ColorFilter.mode(Color(0xFF757575), BlendMode.srcIn),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '탭해서 증거 사진 첨부',
+              style: TextStyle(
+                color: Color(0xFF757575),
+                fontSize: 16,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w500,
+                height: 1.50,
+                letterSpacing: -0.31,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '증거 사진 ${_evidenceImages.length}개 첨부됨',
+            style: const TextStyle(
+              color: Color(0xFF757575),
+              fontSize: 14,
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w500,
+              height: 1.43,
+              letterSpacing: -0.15,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _evidenceImages.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) =>
+                  _evidenceThumb(_evidenceImages[index]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _submit() async {
     if (!_canSubmit) return;
@@ -187,7 +290,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     const SizedBox(height: 10),
                     InkWell(
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () => setState(() => _hasEvidence = !_hasEvidence),
+                      onTap: _pickEvidenceImages,
                       child: Container(
                         width: double.infinity,
                         height: 118,
@@ -198,21 +301,32 @@ class _ReportScreenState extends State<ReportScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: Center(
-                          child: Text(
-                            _hasEvidence ? '증거 사진 1개 첨부됨' : '탭해서 증거 사진 첨부',
-                            style: const TextStyle(
+                        child: _buildEvidenceBody(),
+                      ),
+                    ),
+                    if (_evidenceImages.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: TextButton(
+                          onPressed: _pickEvidenceImages,
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            '사진 다시 선택',
+                            style: TextStyle(
                               color: Color(0xFF757575),
-                              fontSize: 16,
+                              fontSize: 14,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w500,
-                              height: 1.50,
-                              letterSpacing: -0.31,
+                              height: 1.43,
+                              letterSpacing: -0.15,
                             ),
                           ),
                         ),
                       ),
-                    ),
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
