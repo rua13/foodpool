@@ -17,6 +17,8 @@ class UserService {
     return userRef(uid).snapshots(includeMetadataChanges: true);
   }
 
+  
+
   /// ✅ users/{uid} 없으면 생성, 있으면 merge 업데이트
   ///
   /// Foodpool 목적:

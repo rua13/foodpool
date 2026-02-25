@@ -1,15 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 
 import '../repositories/order_repository.dart';
 
 class OrderProvider extends ChangeNotifier {
-  OrderProvider(this._repo, {FirebaseFunctions? functions})
-      : _functions = functions ?? FirebaseFunctions.instance;
+  OrderProvider(this._repo,);
 
   final OrderRepository _repo;
-  final FirebaseFunctions _functions;
 
   bool isLoading = false;
   String? error;
@@ -52,35 +49,7 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> joinOrder(String orderId) async {
-    error = null;
-    isLoading = true;
-    notifyListeners();
-    try {
-      final callable = _functions.httpsCallable('joinOrder');
-      await callable.call({'orderId': orderId});
-    } on FirebaseFunctionsException catch (e) {
-      error = '${e.code}: ${e.message ?? ''}';
-      rethrow;
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
+  Future<void> joinOrder(String orderId, String uid) => _repo.joinOrder(orderId: orderId, uid: uid);
+  Future<void> leaveOrder(String orderId, String uid) => _repo.leaveOrder(orderId: orderId, uid: uid);
 
-  Future<void> leaveOrder(String orderId) async {
-    error = null;
-    isLoading = true;
-    notifyListeners();
-    try {
-      final callable = _functions.httpsCallable('leaveOrder');
-      await callable.call({'orderId': orderId});
-    } on FirebaseFunctionsException catch (e) {
-      error = '${e.code}: ${e.message ?? ''}';
-      rethrow;
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
 }

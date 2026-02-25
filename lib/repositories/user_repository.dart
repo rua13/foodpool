@@ -106,4 +106,25 @@ class UserRepository {
   }) async {
     await _service.setCurrentOrderId(uid: uid, orderId: orderId);
   }
+
+  // Future<void> onLogin(User firebaseUser) async {
+  //   // lastLoginAt 갱신 (서비스에 메서드가 없으면 upsertUser가 매번 갱신하도록 구현)
+  //   await _service.touchLastLoginAt(uid: firebaseUser.uid);
+
+  //   // ✅ 로그인마다 다시 띄우기: guideShown을 false로 리셋
+  //   await _service.setUiFlag(
+  //     uid: firebaseUser.uid,
+  //     patch: {'guideShown': false},
+  //   );
+  // }
+  /// ✅ 매 로그인마다 호출: "가이드 UI를 다시 띄우기" 위해 guideShown을 false로 리셋
+  Future<void> onLogin(User firebaseUser) async {
+    // lastLoginAt은 ensureUserDoc의 upsertUser에서 매번 갱신하도록 하는 게 깔끔함
+    // (서비스가 이미 lastLoginAt을 "매 로그인" 갱신한다고 주석에 적혀있음)
+
+    await _service.setUiFlag(
+      uid: firebaseUser.uid,
+      patch: {'guideShown': false},
+    );
+  }
 }

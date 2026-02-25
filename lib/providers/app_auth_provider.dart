@@ -103,6 +103,7 @@ class AppAuthProvider extends ChangeNotifier {
       //                실서비스/MVP에서는 "문서 없으면 생성"이 더 안전함.
       if (u != null) {
         await _userRepo.ensureUserDoc(u);
+        await _userRepo.onLogin(u); // ✅ 매 로그인마다 실행
       }
 
       return result;

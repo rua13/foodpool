@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foodpool/providers/app_auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -59,9 +60,10 @@ class OrderDetailScreen extends StatelessWidget {
 
   Future<void> _joinAndGoChat(BuildContext context) async {
     try {
-      // ✅ 추천: 항상 join 호출(서버가 멱등 join이면 이미 참여여도 그냥 성공)
-      await context.read<OrderProvider>().joinOrder(orderId);
+      final uid = context.read<AppAuthProvider>().user!.uid;
 
+      // ✅ 추천: 항상 join 호출(서버가 멱등 join이면 이미 참여여도 그냥 성공)
+      await context.read<OrderProvider>().joinOrder(orderId, uid);
       if (!context.mounted) return;
       context.push('/order/$orderId/chat');
     } catch (e) {
