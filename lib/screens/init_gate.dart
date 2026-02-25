@@ -8,7 +8,6 @@ import '../models/user_model.dart';
 
 // TODO(FOODPOOL): 아래 스크린 경로를 너 프로젝트 구조에 맞게 수정
 import 'auth/login_screen.dart';
-import 'onboarding/community_guide_screen.dart';
 import 'home/home_shell_screen.dart';
 import 'splash/logo_screen.dart';
 
@@ -66,7 +65,7 @@ class _InitGateState extends State<InitGate> {
     // 5) 온보딩(커뮤니티 가이드) 게이트
     switch (u.onboardingStep) {
       case OnboardingStep.guide:
-        return const CommunityGuideScreen();
+        return const HomeShellScreen();
 
       case OnboardingStep.done:
         return const HomeShellScreen();

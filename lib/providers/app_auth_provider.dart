@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../firebase_options.dart';
 import '../repositories/user_repository.dart';
 
 // TODO(FOODPOOL): serverClientId는 너 Firebase/Google Cloud 설정 값으로 교체
@@ -52,8 +53,15 @@ class AppAuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final String? clientId =
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+                  defaultTargetPlatform == TargetPlatform.macOS)
+              ? DefaultFirebaseOptions.currentPlatform.iosClientId
+              : null;
+
       // 1) GoogleSignIn 초기화
       await GoogleSignIn.instance.initialize(
+        clientId: clientId,
         serverClientId: serverClientId,
       );
 
@@ -61,7 +69,7 @@ class AppAuthProvider extends ChangeNotifier {
       final googleUser = await GoogleSignIn.instance.authenticate();
 
       // 3) 토큰 획득
-      final googleAuth = await googleUser.authentication;
+      final googleAuth = googleUser.authentication;
 
       // 4) Firebase Credential 생성
       final credential = GoogleAuthProvider.credential(
