@@ -1,156 +1,175 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../providers/order_provider.dart';
+import '../../repositories/order_repository.dart';
 
 class OrderDetailScreen extends StatelessWidget {
   const OrderDetailScreen({super.key, required this.orderId});
 
   final String orderId;
 
-  static const Map<String, _OrderDetailData> _mockOrders = {
-    'order-1': _OrderDetailData(
-      title: '마라탕 드실 분!!',
-      time: '17:10',
-      storeName: '행복한마라탕 법원점',
-      minimumOrderAmount: '19,900',
-      pickupSpot: '비전관',
-      deliveryFee: '3,000',
-      depositMethod: '주문 전 선입금',
-      link: 'http://baemin.com',
-      note: '채팅방 들어오면 바로 계좌 보내드릴게용',
-    ),
-    'order-2': _OrderDetailData(
-      title: '고바콤',
-      time: '18:30',
-      storeName: '굽네치킨 양덕점',
-      minimumOrderAmount: '19,900',
-      pickupSpot: '비전관',
-      deliveryFee: '3,000',
-      depositMethod: '주문 전 선입금',
-      link: 'http://baemin.com',
-      note: '채팅방 들어오면 바로 계좌 보내드릴게용',
-    ),
-    'order-3': _OrderDetailData(
-      title: '대왕비빔밥 (육회 비빔밥)',
-      time: '16:55',
-      storeName: '고기듬뿍대왕비빔밥 본점',
-      minimumOrderAmount: '20,000',
-      pickupSpot: '현동홀',
-      deliveryFee: '3,000',
-      depositMethod: '주문 전 선입금',
-      link: 'http://baemin.com',
-      note: '채팅방 들어오면 바로 계좌 보내드릴게용',
-    ),
-    'order-4': _OrderDetailData(
-      title: '요아정',
-      time: '17:05',
-      storeName: '행복한마라탕 법원점',
-      minimumOrderAmount: '19,900',
-      pickupSpot: '소라',
-      deliveryFee: '3,000',
-      depositMethod: '주문 전 선입금',
-      link: 'http://baemin.com',
-      note: '채팅방 들어오면 바로 계좌 보내드릴게용',
-    ),
-  };
+  String _two(int n) => n.toString().padLeft(2, '0');
 
-  _OrderDetailData get _data =>
-      _mockOrders[orderId] ??
-      _OrderDetailData(
-        title: '공동주문',
-        time: '-',
-        storeName: '-',
-        minimumOrderAmount: '-',
-        pickupSpot: '-',
-        deliveryFee: '-',
-        depositMethod: '-',
-        link: '-',
-        note: '주문 정보를 불러오는 중이에요.',
-      );
+  String _formatMoney(int? n) {
+    if (n == null) return '-';
+    final s = n.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      final idxFromEnd = s.length - i;
+      buf.write(s[i]);
+      if (idxFromEnd > 1 && idxFromEnd % 3 == 1) buf.write(',');
+    }
+    return buf.toString();
+  }
+
+  _OrderDetailData _mapDocToDetail(Map<String, dynamic> data) {
+    final endAt = data['endAt'] is Timestamp ? data['endAt'] as Timestamp : null;
+    final endAtStr = endAt == null
+        ? '-'
+        : '${_two(endAt.toDate().hour)}:${_two(endAt.toDate().minute)}';
+
+    final minOrder = data['minimumOrderAmount'] is int ? data['minimumOrderAmount'] as int : null;
+    final deliveryFee = data['deliveryFee'] is int ? data['deliveryFee'] as int : null;
+
+    return _OrderDetailData(
+      title: (data['title'] ?? '-').toString(),
+      time: endAtStr,
+      storeName: (data['storeName'] ?? '-').toString(),
+      minimumOrderAmount: minOrder == null ? '-' : _formatMoney(minOrder),
+      pickupSpot: (data['pickupSpot'] ?? '-').toString(),
+      deliveryFee: deliveryFee == null ? '-' : _formatMoney(deliveryFee),
+      depositMethod: (data['depositMethods'] ?? '-').toString(),
+      link: (data['link'] ?? '-').toString(),
+      note: (data['note'] ?? '').toString(), // note 없으면 빈값 처리
+    );
+  }
 
   Future<void> _joinAndGoChat(BuildContext context) async {
-    context.push('/order/$orderId/chat');
+    try {
+      // ✅ 추천: 항상 join 호출(서버가 멱등 join이면 이미 참여여도 그냥 성공)
+      await context.read<OrderProvider>().joinOrder(orderId);
+
+      if (!context.mounted) return;
+      context.push('/order/$orderId/chat');
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('채팅 참여 실패: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final data = _data;
+    final repo = context.read<OrderRepository>();
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: repo.watchOrderSnap(orderId),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFFFFBF8),
+            body: SafeArea(
+              child: Center(child: Text('주문 불러오기 오류: ${snap.error}')),
+            ),
+          );
+        }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFFBF8),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 22,
-                      color: Color(0xFF0A0A0A),
-                    ),
+        // 로딩 중에도 UI 뼈대는 유지하고 싶으면 여기서 스켈레톤을 넣어도 됨.
+        if (!snap.hasData) {
+          return const Scaffold(
+            backgroundColor: Color(0xFFFFFBF8),
+            body: SafeArea(child: Center(child: CircularProgressIndicator())),
+          );
+        }
+
+        final doc = snap.data!;
+        if (!doc.exists) {
+          return const Scaffold(
+            backgroundColor: Color(0xFFFFFBF8),
+            body: SafeArea(child: Center(child: Text('존재하지 않는 주문이에요.'))),
+          );
+        }
+
+        final data = _mapDocToDetail(doc.data()!);
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFFFFBF8),
+          body: SafeArea(
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.pop(),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 22,
+                          color: Color(0xFF0A0A0A),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        '공동주문 상세',
+                        style: TextStyle(
+                          color: Color(0xFF0A0A0A),
+                          fontSize: 20,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w700,
+                          height: 1.5,
+                          letterSpacing: -0.45,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    '공동주문 상세',
-                    style: TextStyle(
-                      color: Color(0xFF0A0A0A),
-                      fontSize: 20,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                      height: 1.5,
-                      letterSpacing: -0.45,
-                    ),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    child: _OrderInformationCard(data: data),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                child: _OrderInformationCard(data: data),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () => _joinAndGoChat(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF5751),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: const Text(
-                    '채팅하기',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 19,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w500,
-                      height: 1.26,
-                      letterSpacing: -0.31,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () => _joinAndGoChat(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF5751),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: const Text(
+                        '채팅하기',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 19,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w500,
+                          height: 1.26,
+                          letterSpacing: -0.31,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }
     );
   }
 }
