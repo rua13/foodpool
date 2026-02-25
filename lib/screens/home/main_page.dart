@@ -239,55 +239,65 @@ class _WriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(9999),
-      onTap: onTap,
-      child: Container(
-        width: 104.3,
-        height: 44,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: ShapeDecoration(
-          color: const Color(0xFFFF5751),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
-          shadows: const [
-            BoxShadow(
-              color: Color(0x19000000),
-              blurRadius: 6,
-              offset: Offset(0, 4),
-              spreadRadius: -4,
+    return SafeArea(
+      minimum: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(9999),
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: 44,
+            minWidth: 104.3,
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: ShapeDecoration(
+              color: const Color(0xFFFF5751),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9999)),
+              shadows: const [
+                BoxShadow(
+                  color: Color(0x19000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 4),
+                  spreadRadius: -4,
+                ),
+                BoxShadow(
+                  color: Color(0x19000000),
+                  blurRadius: 15,
+                  offset: Offset(0, 10),
+                  spreadRadius: -3,
+                ),
+              ],
             ),
-            BoxShadow(
-              color: Color(0x19000000),
-              blurRadius: 15,
-              offset: Offset(0, 10),
-              spreadRadius: -3,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              'lib/assets/icons/card.svg',
-              width: 20,
-              height: 20,
-              colorFilter:
-                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              '글쓰기',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w500,
-                height: 1.43,
-                letterSpacing: -0.15,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'lib/assets/icons/card.svg',
+                    width: 20,
+                    height: 20,
+                    colorFilter:
+                        const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '글쓰기',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                      height: 1.43,
+                      letterSpacing: -0.15,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

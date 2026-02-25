@@ -34,16 +34,26 @@ class OrderDetailScreen extends StatelessWidget {
     final minOrder = data['minimumOrderAmount'] is int ? data['minimumOrderAmount'] as int : null;
     final deliveryFee = data['deliveryFee'] is int ? data['deliveryFee'] as int : null;
 
+    // UI는 String만 받으니까 여기서 "원"까지 붙여서 넘기면 카드 수정 없이 깔끔함
+    final minOrderStr = minOrder == null ? '-' : '${_formatMoney(minOrder)}원';
+    final deliveryFeeStr = deliveryFee == null ? '-' : '${_formatMoney(deliveryFee)}원';
+
+    final depositMethods = (data['depositMethods'] ?? '-').toString();
+
+    // note는 create payload에 아직 없을 가능성이 높으니 기본값을 주자
+    final note = (data['note'] ?? '').toString().trim();
+    final noteStr = note.isEmpty ? '채팅방 들어오면 자세히 안내할게요.' : note;
+
     return _OrderDetailData(
       title: (data['title'] ?? '-').toString(),
       time: endAtStr,
       storeName: (data['storeName'] ?? '-').toString(),
-      minimumOrderAmount: minOrder == null ? '-' : _formatMoney(minOrder),
+      minimumOrderAmount: minOrderStr,
       pickupSpot: (data['pickupSpot'] ?? '-').toString(),
-      deliveryFee: deliveryFee == null ? '-' : _formatMoney(deliveryFee),
-      depositMethod: (data['depositMethods'] ?? '-').toString(),
+      deliveryFee: deliveryFeeStr,
+      depositMethod: depositMethods,
       link: (data['link'] ?? '-').toString(),
-      note: (data['note'] ?? '').toString(), // note 없으면 빈값 처리
+      note: noteStr, // note 없으면 빈값 처리
     );
   }
 
@@ -72,7 +82,7 @@ class OrderDetailScreen extends StatelessWidget {
           return Scaffold(
             backgroundColor: const Color(0xFFFFFBF8),
             body: SafeArea(
-              child: Center(child: Text('주문 불러오기 오류: ${snap.error}')),
+              child: Center(child: Text('주문 정보를 불러오지 못했어요.\n${snap.error}')),
             ),
           );
         }
