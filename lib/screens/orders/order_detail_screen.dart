@@ -34,15 +34,14 @@ class OrderDetailScreen extends StatelessWidget {
     final minOrder = data['minimumOrderAmount'] is int ? data['minimumOrderAmount'] as int : null;
     final deliveryFee = data['deliveryFee'] is int ? data['deliveryFee'] as int : null;
 
-    // UI는 String만 받으니까 여기서 "원"까지 붙여서 넘기면 카드 수정 없이 깔끔함
-    final minOrderStr = minOrder == null ? '-' : '${_formatMoney(minOrder)}원';
-    final deliveryFeeStr = deliveryFee == null ? '-' : '${_formatMoney(deliveryFee)}원';
+    final minOrderStr = minOrder == null ? '-' : _formatMoney(minOrder);
+    final deliveryFeeStr = deliveryFee == null ? '-' : _formatMoney(deliveryFee);
 
     final depositMethods = (data['depositMethods'] ?? '-').toString();
 
-    // note는 create payload에 아직 없을 가능성이 높으니 기본값을 주자
     final note = (data['note'] ?? '').toString().trim();
-    final noteStr = note.isEmpty ? '채팅방 들어오면 자세히 안내할게요.' : note;
+    final noteStr = note.isEmpty ? '채팅방 들어오면 바로 계좌 보내드릴게용' : note;
+    final isClosed = endAt != null && endAt.toDate().isBefore(DateTime.now());
 
     return _OrderDetailData(
       title: (data['title'] ?? '-').toString(),
@@ -53,7 +52,8 @@ class OrderDetailScreen extends StatelessWidget {
       deliveryFee: deliveryFeeStr,
       depositMethod: depositMethods,
       link: (data['link'] ?? '-').toString(),
-      note: noteStr, // note 없으면 빈값 처리
+      note: noteStr,
+      status: isClosed ? _OrderDetailStatus.closed : _OrderDetailStatus.inProgress,
     );
   }
 
@@ -110,20 +110,24 @@ class OrderDetailScreen extends StatelessWidget {
           body: SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 8),
+                const SizedBox(height: 14),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Row(
                     children: [
-                      IconButton(
-                        onPressed: () => context.pop(),
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          size: 22,
-                          color: Color(0xFF0A0A0A),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => context.pop(),
+                        child: const Padding(
+                          padding: EdgeInsets.all(2),
+                          child: Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            size: 22,
+                            color: Color(0xFF0A0A0A),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 18),
                       const Text(
                         '공동주문 상세',
                         style: TextStyle(
@@ -138,15 +142,15 @@ class OrderDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 18),
                     child: _OrderInformationCard(data: data),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
                   child: SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -220,16 +224,25 @@ class _OrderInformationCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            data.title,
-            style: const TextStyle(
-              color: Color(0xFF0A0A0A),
-              fontSize: 18,
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w700,
-              height: 1.5,
-              letterSpacing: -0.44,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  data.title,
+                  style: const TextStyle(
+                    color: Color(0xFF0A0A0A),
+                    fontSize: 18,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w700,
+                    height: 1.5,
+                    letterSpacing: -0.44,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              _DetailStatusChip(status: data.status),
+            ],
           ),
           const SizedBox(height: 16),
           Divider(
@@ -304,7 +317,7 @@ class _InfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            textAlign: TextAlign.right,
+            textAlign: TextAlign.left,
             style: const TextStyle(
               color: Color(0xFF0A0A0A),
               fontSize: 16,
@@ -313,11 +326,50 @@ class _InfoRow extends StatelessWidget {
               height: 1.5,
               letterSpacing: -0.31,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
+}
+
+class _DetailStatusChip extends StatelessWidget {
+  const _DetailStatusChip({required this.status});
+
+  final _OrderDetailStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final isClosed = status == _OrderDetailStatus.closed;
+    return Container(
+      width: 59,
+      height: 24,
+      decoration: ShapeDecoration(
+        color: isClosed ? const Color(0xFFFFF3EB) : const Color(0xFFEAF9F8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        isClosed ? '주문 마감' : '진행 중',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: isClosed ? const Color(0xFFFF5751) : const Color(0xFF2EC4B6),
+          fontSize: isClosed ? 10 : 12,
+          fontFamily: 'Inter',
+          fontWeight: FontWeight.w500,
+          height: 1.2,
+          letterSpacing: -0.45,
+        ),
+      ),
+    );
+  }
+}
+
+enum _OrderDetailStatus {
+  inProgress,
+  closed,
 }
 
 class _OrderDetailData {
@@ -331,6 +383,7 @@ class _OrderDetailData {
     required this.depositMethod,
     required this.link,
     required this.note,
+    required this.status,
   });
 
   final String title;
@@ -342,4 +395,5 @@ class _OrderDetailData {
   final String depositMethod;
   final String link;
   final String note;
+  final _OrderDetailStatus status;
 }
