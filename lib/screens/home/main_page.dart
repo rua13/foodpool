@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:foodpool/widgets/order_card.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({
     super.key,
+    this.allOrders = const [],
+    this.myOrders = const [],
     this.onTapWrite,
     this.onTapProfile,
     this.onTapOrder,
   });
 
+  final List<OrderCardData> allOrders;
+  final List<OrderCardData> myOrders;
   final VoidCallback? onTapWrite;
   final VoidCallback? onTapProfile;
   final ValueChanged<String>? onTapOrder;
@@ -65,6 +70,23 @@ class _MainPageState extends State<MainPage> {
   ];
 
   List<_OrderCardData> get _visibleOrders {
+    final selectedOrders = _showMyOrders ? widget.myOrders : widget.allOrders;
+    if (selectedOrders.isNotEmpty) {
+      return selectedOrders
+          .map(
+            (order) => _OrderCardData(
+              orderId: order.orderId,
+              title: order.title,
+              time: order.time,
+              store: order.store,
+              price: order.price,
+              place: order.place,
+              status: _OrderStatus.inProgress,
+            ),
+          )
+          .toList(growable: false);
+    }
+
     if (!_showMyOrders) return _allOrders;
     return _allOrders.take(2).toList(growable: false);
   }

@@ -99,20 +99,20 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     }
 
     try {
-      final orderId = await context.read<OrderProvider>().createOrder(
-            ownerId: uid,
-            title: _titleCtrl.text.trim(),
-            storeName: _storeNameCtrl.text.trim(),
-            pickupSpot: _pickupCtrl.text.trim(),
-            link: _linkCtrl.text.trim(),
-            depositMethods: _depositMethodsCtrl.text.trim(),
-            minimumOrderAmount: minOrderAmount,
-            deliveryFee: deliveryFee,
-            endAtLocal: endAt,
-          );
+      await context.read<OrderProvider>().createOrder(
+        ownerId: uid,
+        title: _titleCtrl.text.trim(),
+        storeName: _storeNameCtrl.text.trim(),
+        pickupSpot: _pickupCtrl.text.trim(),
+        link: _linkCtrl.text.trim(),
+        depositMethods: _depositMethodsCtrl.text.trim(),
+        minimumOrderAmount: minOrderAmount,
+        deliveryFee: deliveryFee,
+        endAtLocal: endAt,
+      );
 
       if (!mounted) return;
-      context.go('/order/$orderId');
+      context.go('/home');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
