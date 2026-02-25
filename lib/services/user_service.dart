@@ -170,13 +170,13 @@ class UserService {
     }, SetOptions(merge: true));
   }
 
-  /// ✅ 현재 조작 중인 roomId 저장(홈이면 null)
+  /// ✅ 현재 조작 중인 orderId 저장(홈이면 null)
   Future<void> setCurrentOrderId({
     required String uid,
-    required String? roomId,
+    required String? orderId,
   }) async {
     await userRef(uid).set({
-      'currentOrderId': roomId,
+      'currentOrderId': orderId,
     }, SetOptions(merge: true));
   }
 }

@@ -7,24 +7,24 @@ import 'firebase_options.dart';
 
 // ====== Services / Repositories / Providers (Foodpool에 맞게 경로 수정) ======
 import 'services/user_service.dart';
-// import 'services/room_service.dart';
+import 'services/order_service.dart';
 // import 'services/chat_service.dart';
 
 import 'repositories/user_repository.dart';
-// import 'repositories/room_repository.dart';
+import 'repositories/order_repository.dart';
 // import 'repositories/chat_repository.dart';
 
 import 'providers/app_auth_provider.dart';
 import 'providers/user_provider.dart';
-// (선택) room/chat provider가 있으면 추가
-// import 'providers/room_provider.dart';
+// (선택) order/chat provider가 있으면 추가
+import 'providers/order_provider.dart';
 // import 'providers/chat_provider.dart';
 
 // ====== Screens ======
 import 'screens/init_gate.dart';
 import 'screens/home/home_shell_screen.dart';
-import 'screens/rooms/room_detail_screen.dart';
-import 'screens/rooms/create_room_screen.dart';
+import 'screens/orders/order_detail_screen.dart';
+import 'screens/orders/create_order_screen.dart';
 import 'screens/chat/chat_screen.dart';
 
 Future<void> main() async {
@@ -36,12 +36,12 @@ Future<void> main() async {
       providers: [
         // --- Services ---
         Provider(create: (_) => UserService()),
-        // Provider(create: (_) => RoomService()),
+        Provider(create: (_) => OrderService()),
         // Provider(create: (_) => ChatService()),
 
         // --- Repositories ---
         Provider(create: (ctx) => UserRepository(ctx.read<UserService>())),
-        // Provider(create: (ctx) => RoomRepository(ctx.read<RoomService>())),
+        Provider(create: (ctx) => OrderRepository(ctx.read<OrderService>())),
         // Provider(create: (ctx) => ChatRepository(ctx.read<ChatService>())),
 
         // --- Providers ---
@@ -55,7 +55,7 @@ Future<void> main() async {
         ),
 
         // (선택) 추후 도메인 provider
-        // ChangeNotifierProvider(create: (ctx) => RoomProvider(ctx.read<RoomRepository>())),
+        ChangeNotifierProvider(create: (ctx) => OrderProvider(ctx.read<OrderRepository>())),
         // ChangeNotifierProvider(create: (ctx) => ChatProvider(ctx.read<ChatRepository>())),
       ],
       child: const MyApp(),
@@ -88,22 +88,22 @@ class MyApp extends StatelessWidget {
 
         GoRoute(
           path: '/create',
-          builder: (context, state) => const CreateRoomScreen(),
+          builder: (context, state) => const CreateOrderScreen(),
         ),
 
         GoRoute(
-          path: '/room/:roomId',
+          path: '/order/:orderId',
           builder: (context, state) {
-            final roomId = state.pathParameters['roomId']!;
-            return RoomDetailScreen(roomId: roomId);
+            final orderId = state.pathParameters['orderId']!;
+            return OrderDetailScreen(orderId: orderId);
           },
         ),
 
         GoRoute(
-          path: '/room/:roomId/chat',
+          path: '/order/:orderId/chat',
           builder: (context, state) {
-            final roomId = state.pathParameters['roomId']!;
-            return ChatScreen(roomId: roomId); // A안: roomId만
+            final orderId = state.pathParameters['orderId']!;
+            return ChatScreen(orderId: orderId); // A안: orderId만
           },
         ),
       ],

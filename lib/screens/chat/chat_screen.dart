@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, required this.roomId});
+  const ChatScreen({super.key, required this.orderId});
 
-  final String roomId;
+  final String orderId;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -23,7 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty) return;
 
     // TODO(FOODPOOL):
-    // rooms/{roomId}/messages 에 add
+    // orders/{orderId}/messages 에 add
     // senderId는 auth.uid
     // createdAt: serverTimestamp
     _textCtrl.clear();
@@ -44,8 +44,8 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: Center(
-              // TODO(FOODPOOL): StreamBuilder로 rooms/{roomId}/messages 실시간 렌더
-              child: Text('roomId: ${widget.roomId}\n메시지 리스트 (TODO)', textAlign: TextAlign.center),
+              // TODO(FOODPOOL): StreamBuilder로 orders/{orderId}/messages 실시간 렌더
+              child: Text('orderId: ${widget.orderId}\n메시지 리스트 (TODO)', textAlign: TextAlign.center),
             ),
           ),
           SafeArea(

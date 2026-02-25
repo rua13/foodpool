@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class RoomDetailScreen extends StatelessWidget {
-  const RoomDetailScreen({super.key, required this.roomId});
+class OrderDetailScreen extends StatelessWidget {
+  const OrderDetailScreen({super.key, required this.orderId});
 
-  final String roomId;
+  final String orderId;
+
+  Future<void> _joinAndGoChat(BuildContext context) async {
+    // TODO(FOODPOOL):
+    // 1) OrderProvider.joinOrder(orderId) (Callable Function 호출)
+    // 2) 성공하면 채팅 화면으로 이동
+    //
+    // 예:
+    // await context.read<OrderProvider>().joinOrder(orderId);
+    // if (!context.mounted) return;
+    // context.push('/order/$orderId/chat');
+
+    context.push('/order/$orderId/chat'); // 임시
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +27,7 @@ class RoomDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              // TODO(FOODPOOL): 방 삭제(방장만) 연결
+              // TODO(FOODPOOL): order 삭제(방장만) => OrderProvider.deleteOrder(orderId)
             },
             icon: const Icon(Icons.delete_outline),
           )
@@ -24,19 +37,15 @@ class RoomDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            Text('roomId: $roomId'),
+            Text('orderId: $orderId'),
             const SizedBox(height: 12),
-
-            // TODO(FOODPOOL): Firestore에서 room 문서 읽어 정보 표시
-            const Text('주문 정보(가게명/링크/마감시간/배달비/최소주문금액 등) (TODO)'),
+            const Text('주문 정보 표시 (TODO)'),
             const SizedBox(height: 24),
 
             SizedBox(
               height: 48,
               child: ElevatedButton(
-                onPressed: () {
-                  context.push('/room/$roomId/chat');
-                },
+                onPressed: () => _joinAndGoChat(context),
                 child: const Text('채팅하기'),
               ),
             ),
@@ -45,8 +54,9 @@ class RoomDetailScreen extends StatelessWidget {
             SizedBox(
               height: 48,
               child: OutlinedButton(
-                onPressed: () {
-                  // TODO(FOODPOOL): 참여하기(joinRoom 함수 호출) 연결
+                onPressed: () async {
+                  // TODO(FOODPOOL): join만 하고 stay (내 주문에 추가만)
+                  // await context.read<OrderProvider>().joinOrder(orderId);
                 },
                 child: const Text('주문 참여(내 주문에 추가)'),
               ),

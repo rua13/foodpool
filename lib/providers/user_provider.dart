@@ -152,18 +152,18 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  /// ✅ 현재 조작 중인 roomId 저장(홈이면 null)
+  /// ✅ 현재 조작 중인 orderId 저장(홈이면 null)
   /// TODO(FOODPOOL): MVP에서 필요 없으면 모델/서비스/규칙에서 제거 추천
   Future<void> setCurrentOrderId({
     required String uid,
-    required String? roomId,
+    required String? orderId,
   }) async {
     error = null;
     // 여기선 가벼운 업데이트라 isLoading을 굳이 true로 두지 않아도 됨(원하면 유지 가능)
     notifyListeners();
 
     try {
-      await _repo.setCurrentOrderId(uid: uid, roomId: roomId);
+      await _repo.setCurrentOrderId(uid: uid, orderId: orderId);
     } catch (e) {
       error = e.toString();
       rethrow;

@@ -97,13 +97,13 @@ class UserRepository {
     );
   }
 
-  /// ✅ 사용자가 현재 조작 중인 roomId 저장(홈이면 null)
+  /// ✅ 사용자가 현재 조작 중인 orderId 저장(홈이면 null)
   ///
   /// TODO(FOODPOOL): 이 기능이 진짜 필요 없으면 모델/서비스/규칙에서 제거 추천.
   Future<void> setCurrentOrderId({
     required String uid,
-    required String? roomId,
+    required String? orderId,
   }) async {
-    await _service.setCurrentOrderId(uid: uid, roomId: roomId);
+    await _service.setCurrentOrderId(uid: uid, orderId: orderId);
   }
 }
