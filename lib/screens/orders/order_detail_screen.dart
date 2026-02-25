@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foodpool/providers/app_auth_provider.dart';
+import 'package:foodpool/services/order_chat_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -59,11 +60,25 @@ class OrderDetailScreen extends StatelessWidget {
   }
 
   Future<void> _joinAndGoChat(BuildContext context) async {
-    try {
-      final uid = context.read<AppAuthProvider>().user!.uid;
+    // 여기 수정함
+    final auth = context.read<AppAuthProvider>();
+    final u = auth.user!;
+    final displayName = u.displayName?.trim().isNotEmpty == true
+        ? u.displayName!.trim()
+        : (u.email?.split('@').first ?? '사용자');
+    final photoUrl = (u.photoURL ?? '').trim();
 
-      // ✅ 추천: 항상 join 호출(서버가 멱등 join이면 이미 참여여도 그냥 성공)
-      await context.read<OrderProvider>().joinOrder(orderId, uid);
+    try {
+      // 1) join 호출(서버가 멱등 join이면 이미 참여여도 그냥 성공)
+      await context.read<OrderProvider>().joinOrder(orderId, u.uid);
+
+      // 2) ✅ members/{uid} 업서트 (프로필용) (여기도 수정)
+      await context.read<OrderChatService>().upsertMyMemberProfile(
+          orderId: orderId,
+          displayName: displayName,
+          photoUrl: photoUrl,
+        );
+
       if (!context.mounted) return;
       context.push('/order/$orderId/chat');
     } catch (e) {
