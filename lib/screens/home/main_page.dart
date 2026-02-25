@@ -532,7 +532,7 @@ class _WriteButton extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SvgPicture.asset(
-                  'lib/assets/icons/card.svg',
+                  'lib/assets/icons/pencil.svg',
                   width: 20,
                   height: 20,
                   colorFilter:

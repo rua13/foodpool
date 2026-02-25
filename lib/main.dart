@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -26,6 +27,7 @@ import 'screens/home/home_shell_screen.dart';
 import 'screens/orders/order_detail_screen.dart';
 import 'screens/orders/create_order_screen.dart';
 import 'screens/chat/chat_screen.dart';
+import 'screens/profile/profile_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -92,6 +94,11 @@ class MyApp extends StatelessWidget {
         ),
 
         GoRoute(
+          path: '/profile',
+          builder: (context, state) => const ProfileScreen(),
+        ),
+
+        GoRoute(
           path: '/order/:orderId',
           builder: (context, state) {
             final orderId = state.pathParameters['orderId']!;
@@ -134,13 +141,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseTheme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFBCE9FF)),
+      scaffoldBackgroundColor: Colors.white,
+    );
+
     return MaterialApp.router(
       routerConfig: _createRouter(context),
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFBCE9FF)),
-        scaffoldBackgroundColor: Colors.white,
-        fontFamily: 'Pretendard',
+      theme: baseTheme.copyWith(
+        textTheme: GoogleFonts.interTextTheme(baseTheme.textTheme),
+        primaryTextTheme: GoogleFonts.interTextTheme(baseTheme.primaryTextTheme),
       ),
     );
   }

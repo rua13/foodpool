@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodpool/providers/app_auth_provider.dart';
 import 'package:foodpool/services/order_chat_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -125,12 +126,11 @@ class OrderDetailScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: const Color(0xFFFFFBF8),
           body: SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 14),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 14, 24, 28),
+              child: Column(
+                children: [
+                  Row(
                     children: [
                       InkWell(
                         borderRadius: BorderRadius.circular(12),
@@ -145,12 +145,11 @@ class OrderDetailScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 18),
-                      const Text(
+                      Text(
                         '공동주문 상세',
-                        style: TextStyle(
+                        style: GoogleFonts.inter(
                           color: Color(0xFF0A0A0A),
                           fontSize: 20,
-                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,
                           height: 1.5,
                           letterSpacing: -0.45,
@@ -158,17 +157,10 @@ class OrderDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 18),
-                    child: _OrderInformationCard(data: data),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
-                  child: SizedBox(
+                  const SizedBox(height: 20),
+                  _OrderInformationCard(data: data),
+                  const SizedBox(height: 20),
+                  SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
@@ -181,13 +173,12 @@ class OrderDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         '채팅하기',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: GoogleFonts.inter(
                           color: Colors.white,
                           fontSize: 19,
-                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w500,
                           height: 1.26,
                           letterSpacing: -0.31,
@@ -195,8 +186,8 @@ class OrderDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -247,10 +238,9 @@ class _OrderInformationCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   data.title,
-                  style: const TextStyle(
+                  style: GoogleFonts.inter(
                     color: Color(0xFF0A0A0A),
                     fontSize: 18,
-                    fontFamily: 'Inter',
                     fontWeight: FontWeight.w700,
                     height: 1.5,
                     letterSpacing: -0.44,
@@ -281,21 +271,20 @@ class _OrderInformationCard extends StatelessWidget {
           const SizedBox(height: 15),
           _InfoRow(label: '링크', value: data.link),
           const SizedBox(height: 18),
+          Divider(
+            height: 1,
+            color: Colors.black.withValues(alpha: 0.10),
+          ),
+          const SizedBox(height: 18),
           Text(
             data.note,
-            style: const TextStyle(
+            style: GoogleFonts.inter(
               color: Color(0xCC0A0A0A),
               fontSize: 16,
-              fontFamily: 'Inter',
               fontWeight: FontWeight.w400,
               height: 1.63,
               letterSpacing: -0.31,
             ),
-          ),
-          const SizedBox(height: 18),
-          Divider(
-            height: 1,
-            color: Colors.black.withValues(alpha: 0.10),
           ),
         ],
       ),
@@ -321,10 +310,9 @@ class _InfoRow extends StatelessWidget {
           width: 94,
           child: Text(
             label,
-            style: const TextStyle(
+            style: GoogleFonts.inter(
               color: Color(0xFF717182),
               fontSize: 14,
-              fontFamily: 'Inter',
               fontWeight: FontWeight.w400,
               height: 1.43,
               letterSpacing: -0.15,
@@ -335,10 +323,9 @@ class _InfoRow extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.left,
-            style: const TextStyle(
+            style: GoogleFonts.inter(
               color: Color(0xFF0A0A0A),
               fontSize: 16,
-              fontFamily: 'Inter',
               fontWeight: FontWeight.w500,
               height: 1.5,
               letterSpacing: -0.31,
@@ -371,12 +358,11 @@ class _DetailStatusChip extends StatelessWidget {
       child: Text(
         isClosed ? '주문 마감' : '진행 중',
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: GoogleFonts.inter(
           color: isClosed ? const Color(0xFFFF5751) : const Color(0xFF2EC4B6),
-          fontSize: isClosed ? 10 : 12,
-          fontFamily: 'Inter',
+          fontSize: 12,
           fontWeight: FontWeight.w500,
-          height: 1.2,
+          height: 2.5,
           letterSpacing: -0.45,
         ),
       ),

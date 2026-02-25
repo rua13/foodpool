@@ -144,9 +144,7 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
                   onTapOrder: (orderId) => context.push('/order/$orderId'),
                   onTapProfile: auth.isLoading
                       ? null
-                      : () async {
-                          await context.read<AppAuthProvider>().signOut();
-                        },
+                      : () => context.push('/profile'),
                 );
               },
             );
