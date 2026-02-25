@@ -293,12 +293,12 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                   InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () => context.pop(),
-                    child: const Padding(
-                      padding: EdgeInsets.all(2),
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 22,
-                        color: Color(0xFF0A0A0A),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: SvgPicture.asset(
+                        'lib/assets/icons/back.svg',
+                        width: 22,
+                        height: 22,
                       ),
                     ),
                   ),

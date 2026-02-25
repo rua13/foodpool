@@ -108,12 +108,12 @@ class ProfileScreen extends StatelessWidget {
                   InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () => context.pop(),
-                    child: const Padding(
-                      padding: EdgeInsets.all(2),
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 22,
-                        color: Color(0xFF0A0A0A),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: SvgPicture.asset(
+                        'lib/assets/icons/back.svg',
+                        width: 22,
+                        height: 22,
                       ),
                     ),
                   ),
@@ -159,70 +159,78 @@ class ProfileScreen extends StatelessWidget {
                           orderSnap.data!.docs.map(_mapDocToCard).toList(growable: false);
 
                       return SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _ProfileCard(user: appUser),
                             const SizedBox(height: 20),
-                            Row(
-                              children: [
-                                const Expanded(
-                                  child: Divider(
-                                    thickness: 1,
-                                    color: Color(0xFFD7D7D7),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Expanded(
+                                        child: Divider(
+                                          thickness: 1,
+                                          color: Color(0xFFD7D7D7),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                                        child: Text(
+                                          '내가 쓴 글',
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.inter(
+                                            color: const Color(0xFF0A0A0A),
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.5,
+                                            letterSpacing: -0.31,
+                                          ),
+                                        ),
+                                      ),
+                                      const Expanded(
+                                        child: Divider(
+                                          thickness: 1,
+                                          color: Color(0xFFD7D7D7),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                                  child: Text(
-                                    '내가 쓴 글',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.inter(
-                                      color: const Color(0xFF0A0A0A),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.5,
-                                      letterSpacing: -0.31,
+                                  const SizedBox(height: 15),
+                                  if (myOrders.isEmpty)
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: ShapeDecoration(
+                                        color: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '작성한 공동주문이 아직 없어요.',
+                                        style: GoogleFonts.inter(
+                                          color: const Color(0xB20A0A0A),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                          height: 1.43,
+                                        ),
+                                      ),
+                                    ),
+                                  ...myOrders.map(
+                                    (order) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 15),
+                                      child: OrderCard(
+                                        data: order,
+                                        onTap: () => context.push('/order/${order.orderId}'),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const Expanded(
-                                  child: Divider(
-                                    thickness: 1,
-                                    color: Color(0xFFD7D7D7),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 15),
-                            if (myOrders.isEmpty)
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(20),
-                                decoration: ShapeDecoration(
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                child: Text(
-                                  '작성한 공동주문이 아직 없어요.',
-                                  style: GoogleFonts.inter(
-                                    color: const Color(0xB20A0A0A),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400,
-                                    height: 1.43,
-                                  ),
-                                ),
-                              ),
-                            ...myOrders.map(
-                              (order) => Padding(
-                                padding: const EdgeInsets.only(bottom: 15),
-                                child: OrderCard(
-                                  data: order,
-                                  onTap: () => context.push('/order/${order.orderId}'),
-                                ),
+                                ],
                               ),
                             ),
                           ],
@@ -252,6 +260,10 @@ class ProfileScreen extends StatelessWidget {
                         'lib/assets/icons/exit.svg',
                         width: 21,
                         height: 21,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFFFF5751),
+                          BlendMode.srcIn,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -333,20 +345,18 @@ class _ProfileCard extends StatelessWidget {
               children: [
                 Text(
                   user.displayName.isEmpty ? '-' : user.displayName,
-                  style: const TextStyle(
+                  style: GoogleFonts.inter(
                     color: Colors.black,
                     fontSize: 24,
-                    fontFamily: 'Pretendard Variable',
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   user.email.isEmpty ? '-' : user.email,
-                  style: const TextStyle(
+                  style: GoogleFonts.inter(
                     color: Colors.black,
                     fontSize: 16,
-                    fontFamily: 'Pretendard Variable',
                     fontWeight: FontWeight.w500,
                   ),
                 ),

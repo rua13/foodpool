@@ -28,6 +28,8 @@ import 'screens/orders/order_detail_screen.dart';
 import 'screens/orders/create_order_screen.dart';
 import 'screens/chat/chat_screen.dart';
 import 'screens/profile/profile_screen.dart';
+import 'screens/profile/public_profile_screen.dart';
+import 'screens/profile/report_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,6 +98,35 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/profile',
           builder: (context, state) => const ProfileScreen(),
+        ),
+
+        GoRoute(
+          path: '/profile/view',
+          builder: (context, state) {
+            final extra = state.extra;
+            if (extra is PublicProfileData) {
+              return PublicProfileScreen(data: extra);
+            }
+            return const PublicProfileScreen(
+              data: PublicProfileData(
+                name: '-',
+                email: '-',
+              ),
+            );
+          },
+        ),
+
+        GoRoute(
+          path: '/report',
+          builder: (context, state) {
+            final extra = state.extra;
+            if (extra is PublicProfileData) {
+              return ReportScreen(target: extra);
+            }
+            return const ReportScreen(
+              target: PublicProfileData(name: '-', email: '-'),
+            );
+          },
         ),
 
         GoRoute(

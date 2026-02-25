@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../profile/public_profile_screen.dart';
 import '../../providers/user_provider.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -43,12 +45,16 @@ class _ChatScreenState extends State<ChatScreen> {
       timeText: '오전  11:10',
       isMine: false,
       senderName: '신겸호',
+      senderEmail: '2400001@handong.ac.kr',
+      senderPhotoUrl: 'https://placehold.co/89x89',
     ),
     const _ChatMessage(
       text: '네 가능합니다 :)',
       timeText: '오전  11:10',
       isMine: false,
       senderName: '신겸호',
+      senderEmail: '2400001@handong.ac.kr',
+      senderPhotoUrl: 'https://placehold.co/89x89',
     ),
   ];
 
@@ -123,6 +129,16 @@ class _ChatScreenState extends State<ChatScreen> {
           _OtherMessageRow(
             message: message,
             showProfile: showProfile,
+            onTapProfile: () {
+              context.push(
+                '/profile/view',
+                extra: PublicProfileData(
+                  name: message.senderName,
+                  email: message.senderEmail ?? '-',
+                  photoUrl: message.senderPhotoUrl,
+                ),
+              );
+            },
           ),
         );
       }
@@ -456,10 +472,12 @@ class _OtherMessageRow extends StatelessWidget {
   const _OtherMessageRow({
     required this.message,
     required this.showProfile,
+    required this.onTapProfile,
   });
 
   final _ChatMessage message;
   final bool showProfile;
+  final VoidCallback onTapProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -469,22 +487,26 @@ class _OtherMessageRow extends StatelessWidget {
         SizedBox(
           width: 42,
           child: showProfile
-              ? Container(
-                  width: 41.14,
-                  height: 41.14,
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFFFD6CD),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(120.03),
+              ? InkWell(
+                  borderRadius: BorderRadius.circular(120),
+                  onTap: onTapProfile,
+                  child: Container(
+                    width: 41.14,
+                    height: 41.14,
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFFFFD6CD),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(120.03),
+                      ),
                     ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    message.senderName.isNotEmpty ? message.senderName[0] : '?',
-                    style: const TextStyle(
-                      color: Color(0xFF171C1F),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    alignment: Alignment.center,
+                    child: Text(
+                      message.senderName.isNotEmpty ? message.senderName[0] : '?',
+                      style: const TextStyle(
+                        color: Color(0xFF171C1F),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 )
@@ -498,13 +520,16 @@ class _OtherMessageRow extends StatelessWidget {
               if (showProfile)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 6.05),
-                  child: Text(
-                    message.senderName,
-                    style: const TextStyle(
-                      color: Color(0xFF171C1F),
-                      fontSize: 14.52,
-                      fontFamily: 'Pretendard Variable',
-                      fontWeight: FontWeight.w300,
+                  child: InkWell(
+                    onTap: onTapProfile,
+                    child: Text(
+                      message.senderName,
+                      style: const TextStyle(
+                        color: Color(0xFF171C1F),
+                        fontSize: 14.52,
+                        fontFamily: 'Pretendard Variable',
+                        fontWeight: FontWeight.w300,
+                      ),
                     ),
                   ),
                 ),
@@ -649,10 +674,14 @@ class _ChatMessage {
     required this.timeText,
     required this.isMine,
     required this.senderName,
+    this.senderEmail,
+    this.senderPhotoUrl,
   });
 
   final String text;
   final String timeText;
   final bool isMine;
   final String senderName;
+  final String? senderEmail;
+  final String? senderPhotoUrl;
 }

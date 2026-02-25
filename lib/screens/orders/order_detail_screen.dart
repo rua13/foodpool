@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foodpool/providers/app_auth_provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -120,12 +121,12 @@ class OrderDetailScreen extends StatelessWidget {
                       InkWell(
                         borderRadius: BorderRadius.circular(12),
                         onTap: () => context.pop(),
-                        child: const Padding(
-                          padding: EdgeInsets.all(2),
-                          child: Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            size: 22,
-                            color: Color(0xFF0A0A0A),
+                        child: Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: SvgPicture.asset(
+                            'lib/assets/icons/back.svg',
+                            width: 22,
+                            height: 22,
                           ),
                         ),
                       ),
