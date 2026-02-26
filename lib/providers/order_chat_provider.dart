@@ -21,7 +21,7 @@ class OrderChatProvider extends ChangeNotifier {
   final Map<String, OrderMember> membersByUid = {};
 
   StreamSubscription? _msgSub;
-  final Map<String, StreamSubscription> _memberSubs = {};
+  StreamSubscription? _membersSub;
 
   /// orderId 채팅방 진입
   void startListening(String orderId) {
@@ -32,19 +32,31 @@ class OrderChatProvider extends ChangeNotifier {
     notifyListeners();
 
     _msgSub?.cancel();
-    _cancelAllMemberSubs(); // 방 바뀌면 기존 member 구독도 정리
+    _membersSub?.cancel();
+    membersByUid.clear();
 
     _msgSub = _repo.listenMessages(orderId).listen(
       (data) {
         messages = data;
         isLoading = false;
         notifyListeners();
-
-        _ensureMemberSubscriptionsForCurrentMessages();
       },
       onError: (e) {
         lastError = e.toString();
         isLoading = false;
+        notifyListeners();
+      },
+    );
+
+    _membersSub = _repo.listenMembers(orderId).listen(
+      (data) {
+        membersByUid
+          ..clear()
+          ..addEntries(data.map((m) => MapEntry(m.uid, m)));
+        notifyListeners();
+      },
+      onError: (e) {
+        lastError = e.toString();
         notifyListeners();
       },
     );
@@ -67,7 +79,8 @@ class OrderChatProvider extends ChangeNotifier {
     activeOrderId = null;
     _msgSub?.cancel();
     _msgSub = null;
-    _cancelAllMemberSubs();
+    _membersSub?.cancel();
+    _membersSub = null;
 
     messages = [];
     membersByUid.clear();
@@ -76,48 +89,10 @@ class OrderChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _ensureMemberSubscriptionsForCurrentMessages() {
-    final orderId = activeOrderId;
-    if (orderId == null) return;
-
-    final senderIds = messages.map((m) => m.senderId).where((id) => id.isNotEmpty).toSet();
-
-    // 새로 등장한 senderId만 구독 추가
-    for (final uid in senderIds) {
-      if (_memberSubs.containsKey(uid)) continue;
-
-      _memberSubs[uid] = _repo
-          .watchMemberSnap(orderId: orderId, memberUid: uid)
-          .listen((snap) {
-        if (!snap.exists) return;
-
-        final member = OrderMember.fromDoc(snap);
-        membersByUid[uid] = member;
-        notifyListeners();
-      });
-    }
-
-    // 더 이상 안 쓰는 senderId 구독은 정리(메시지 스크롤이 길어질수록 계속 남는 걸 방지)
-    final toRemove = _memberSubs.keys.where((uid) => !senderIds.contains(uid)).toList();
-    for (final uid in toRemove) {
-      _memberSubs[uid]?.cancel();
-      _memberSubs.remove(uid);
-      // membersByUid는 굳이 지우지 않아도 되지만(캐시), 원하면 지워도 됨
-      // membersByUid.remove(uid);
-    }
-  }
-
-  void _cancelAllMemberSubs() {
-    for (final sub in _memberSubs.values) {
-      sub.cancel();
-    }
-    _memberSubs.clear();
-  }
-
   @override
   void dispose() {
     _msgSub?.cancel();
-    _cancelAllMemberSubs();
+    _membersSub?.cancel();
     super.dispose();
   }
 }

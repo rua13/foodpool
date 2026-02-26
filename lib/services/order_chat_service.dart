@@ -27,6 +27,10 @@ class OrderChatService {
     return _orderRef(orderId).collection('messages');
   }
 
+  CollectionReference<Map<String, dynamic>> _membersCol(String orderId) {
+    return _orderRef(orderId).collection('members');
+  }
+
   DocumentReference<Map<String, dynamic>> _memberRef(String orderId, String uid) {
     return _orderRef(orderId).collection('members').doc(uid);
   }
@@ -138,6 +142,11 @@ class OrderChatService {
     String memberUid,
   ) {
     return _memberRef(orderId, memberUid).snapshots();
+  }
+
+  /// 주문방 멤버 전체 스트림
+  Stream<QuerySnapshot<Map<String, dynamic>>> watchMembers(String orderId) {
+    return _membersCol(orderId).snapshots();
   }
 
   /// 특정 멤버 프로필 1개 fetch (캐시/매핑용)

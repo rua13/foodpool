@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 
 import '../../providers/app_auth_provider.dart';
 import '../../providers/order_provider.dart';
+import '../../services/order_chat_service.dart';
+import '../../widgets/time_setting_dialog.dart';
 
 class CreateOrderScreen extends StatefulWidget {
   const CreateOrderScreen({super.key});
@@ -68,19 +70,9 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
 
   Future<void> _pickTime() async {
     final now = TimeOfDay.now();
-    final picked = await showTimePicker(
-      context: context,
+    final picked = await showFoodpoolTimeSettingDialog(
+      context,
       initialTime: _selectedTime ?? now,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: const Color(0xFFFF5751),
-                ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (picked == null) return;
     setState(() => _selectedTime = picked);
@@ -112,7 +104,10 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       return;
     }
 
-    final uid = context.read<AppAuthProvider>().user?.uid;
+    final authUser = context.read<AppAuthProvider>().user;
+    final orderProvider = context.read<OrderProvider>();
+    final chatService = context.read<OrderChatService>();
+    final uid = authUser?.uid;
     if (uid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('로그인이 필요합니다.')),
@@ -121,7 +116,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     }
 
     try {
-      await context.read<OrderProvider>().createOrder(
+      final orderId = await orderProvider.createOrder(
             ownerId: uid,
             title: _titleCtrl.text.trim(),
             storeName: _storeNameCtrl.text.trim(),
@@ -132,6 +127,19 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
             deliveryFee: deliveryFee,
             endAtLocal: endAt,
           );
+      final displayName = authUser?.displayName?.trim().isNotEmpty == true
+          ? authUser!.displayName!.trim()
+          : (authUser?.email?.split('@').first ?? '사용자');
+      final photoUrl = (authUser?.photoURL ?? '').trim();
+      try {
+        await chatService.upsertMyMemberProfile(
+              orderId: orderId,
+              displayName: displayName,
+              photoUrl: photoUrl,
+            );
+      } catch (e) {
+        debugPrint('owner member upsert skipped: $e');
+      }
       if (!mounted) return;
       await _showSubmitSuccessDialog();
       if (!mounted) return;

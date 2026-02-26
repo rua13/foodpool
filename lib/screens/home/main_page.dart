@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:foodpool/widgets/order_card.dart';
+import 'package:foodpool/widgets/foodpool_logo.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({
@@ -111,15 +111,12 @@ class _MainPageState extends State<MainPage> {
                       height: 36,
                       child: Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(
-                          'FOODPOOL',
-                          style: GoogleFonts.unbounded(
-                            color: const Color(0xFFFF5751),
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            height: 1.50,
-                            letterSpacing: 0.07,
-                          ),
+                        child: const FoodpoolLogo(
+                          textSize: 24,
+                          iconHeight: 20,
+                          iconWidth: 12,
+                          spacing: 2,
+                          letterSpacing: 0.07,
                         ),
                       ),
                     ),

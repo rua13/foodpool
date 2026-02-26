@@ -49,30 +49,17 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _confirmWithdrawal(BuildContext context) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('탈퇴하기'),
-          content: const Text('현재는 계정 탈퇴 대신 로그아웃이 진행됩니다. 계속할까요?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('취소'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-    if (confirm != true || !context.mounted) return;
-    await context.read<AppAuthProvider>().signOut();
-    if (!context.mounted) return;
-    context.go('/');
+  Future<void> _logout(BuildContext context) async {
+    try {
+      await context.read<AppAuthProvider>().signOut();
+      if (!context.mounted) return;
+      context.go('/');
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('로그아웃 실패: $e')),
+      );
+    }
   }
 
   @override
@@ -247,7 +234,7 @@ class ProfileScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton(
-                  onPressed: () => _confirmWithdrawal(context),
+                  onPressed: () => _logout(context),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(width: 2, color: Color(0xFFFF5751)),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
@@ -267,7 +254,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '탈퇴하기',
+                        '로그아웃',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           color: const Color(0xFFFF5751),

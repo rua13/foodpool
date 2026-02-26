@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/order_member_model.dart';
 import '../models/order_message_model.dart';
 import '../services/order_chat_service.dart';
 
@@ -11,6 +12,12 @@ class OrderChatRepository {
   Stream<List<OrderMessage>> listenMessages(String orderId) {
     return _service.watchMessagesAsc(orderId).map((snap) {
       return snap.docs.map((d) => OrderMessage.fromDoc(d)).toList(growable: false);
+    });
+  }
+
+  Stream<List<OrderMember>> listenMembers(String orderId) {
+    return _service.watchMembers(orderId).map((snap) {
+      return snap.docs.map((d) => OrderMember.fromDoc(d)).toList(growable: false);
     });
   }
 

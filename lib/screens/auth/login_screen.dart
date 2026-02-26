@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../providers/app_auth_provider.dart';
+import '../../widgets/foodpool_logo.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -24,15 +25,13 @@ class LoginScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'FOODPOOL',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.unbounded(
-                      color: Color(0xFFFF5751),
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      height: 1.5,
-                      letterSpacing: 0.41,
+                  const Center(
+                    child: FoodpoolLogo(
+                      textSize: 30.01,
+                      iconHeight: 24,
+                      iconWidth: 14,
+                      spacing: 2.5,
+                      letterSpacing: 0.19,
                     ),
                   ),
                   const SizedBox(height: 3),

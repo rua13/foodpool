@@ -3,18 +3,15 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-
+import '../../models/order_message_model.dart';
 import '../../providers/order_chat_provider.dart';
 import '../../repositories/order_chat_repository.dart';
 import '../../models/order_member_model.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 
 import '../profile/public_profile_screen.dart';
-import '../../providers/user_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key, required this.orderId});
@@ -58,6 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    _orderSub?.cancel();
     _textCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
@@ -108,20 +106,6 @@ class _ChatScreenState extends State<ChatScreen> {
     final chat = context.watch<OrderChatProvider>();
     final messages = chat.messages;
 
-    // “참여 알림” 표시 이름(내 이름) — members 업서트가 됐으면 membersByUid에서 가져와도 됨
-    final me = (myUid == null) ? null : chat.membersByUid[myUid];
-    final joinName = (me?.displayName.trim().isNotEmpty == true)
-        ? me!.displayName
-        : (FirebaseAuth.instance.currentUser?.displayName?.trim().isNotEmpty == true
-            ? FirebaseAuth.instance.currentUser!.displayName!.trim()
-            : (FirebaseAuth.instance.currentUser?.email?.split('@').first ?? '참여자'));
-    // final user = context.watch<UserProvider>().currentUser;
-    // final displayName = user?.displayName.trim() ?? '';
-    // final fallbackFromEmail =
-    //     FirebaseAuth.instance.currentUser?.email?.split('@').first ?? '';
-    // final joinName =
-    //     displayName.isNotEmpty ? displayName : (fallbackFromEmail.isNotEmpty ? fallbackFromEmail : '참여자');
-
     return Scaffold(
       backgroundColor: const Color(0xFFFFFBF8),
       body: SafeArea(
@@ -141,8 +125,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
                 children: [
                   const _ChatGuideCard(),
-                  const SizedBox(height: 16),
-                  _JoinNoticeChip(text: _joinNoticeText(joinName)),
                   const SizedBox(height: 16),
                   ..._buildMessageWidgets(
                     context,
@@ -164,38 +146,56 @@ class _ChatScreenState extends State<ChatScreen> {
   }
   List<Widget> _buildMessageWidgets(
     BuildContext context, {
-    required List messages,
+    required List<OrderMessage> messages,
     required String? myUid,
     required Map<String, OrderMember> membersByUid,
   }) {
     final widgets = <Widget>[];
+    final timeline = <_ChatTimelineItem>[
+      ...membersByUid.values
+          .where((member) => member.joinedAt != null)
+          .map((member) => _ChatTimelineItem.join(member)),
+      ...messages.map((message) => _ChatTimelineItem.message(message)),
+    ]..sort((a, b) {
+        final byTime = a.timestamp.compareTo(b.timestamp);
+        if (byTime != 0) return byTime;
+        if (a.isJoin == b.isJoin) return 0;
+        return a.isJoin ? -1 : 1;
+      });
 
-    for (var i = 0; i < messages.length; i++) {
-      final m = messages[i];
+    String? prevMessageSenderId;
 
+    for (final item in timeline) {
+      if (item.isJoin) {
+        final member = item.member!;
+        final rawName = member.displayName.trim();
+        final name = rawName.isEmpty ? '사용자' : rawName;
+        widgets.add(_JoinNoticeChip(text: _joinNoticeText(name)));
+        widgets.add(const SizedBox(height: 16));
+        prevMessageSenderId = null;
+        continue;
+      }
+
+      final m = item.message!;
       final isMine = (myUid != null && m.senderId == myUid);
 
       final senderProfile = membersByUid[m.senderId];
-      final senderName = senderProfile?.displayName ?? '';
+      final senderNameRaw = (senderProfile?.displayName ?? '').trim();
+      final senderName = senderNameRaw.isEmpty ? '사용자' : senderNameRaw;
       final senderPhotoUrl = senderProfile?.photoUrl ?? '';
-
-      final timeText = _formatKoreanTime(m.createdAt);
 
       final view = _ChatMessageView(
         text: m.text,
-        timeText: timeText,
+        timeText: _formatKoreanTime(m.createdAt),
         isMine: isMine,
-        senderName: senderName.isEmpty ? '사용자' : senderName,
+        senderName: senderName,
         senderPhotoUrl: senderPhotoUrl,
       );
 
       if (view.isMine) {
         widgets.add(_MyMessageRow(message: view));
       } else {
-        final prev = i > 0 ? messages[i - 1] : null;
-        final prevSenderId = prev?.senderId as String?;
-        final showProfile = prev == null || prevSenderId != m.senderId;
-
+        final showProfile = prevMessageSenderId != m.senderId;
         widgets.add(
           _OtherMessageRow(
             message: view,
@@ -214,11 +214,30 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       }
 
+      prevMessageSenderId = m.senderId;
       widgets.add(const SizedBox(height: 8));
     }
 
     return widgets;
   }
+}
+
+class _ChatTimelineItem {
+  _ChatTimelineItem.message(this.message)
+      : assert(message != null),
+        member = null,
+        timestamp = message!.createdAt;
+
+  _ChatTimelineItem.join(this.member)
+      : assert(member != null),
+        message = null,
+        timestamp = member!.joinedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+
+  final OrderMessage? message;
+  final OrderMember? member;
+  final DateTime timestamp;
+
+  bool get isJoin => member != null;
 }
 
 class _ChatHeader extends StatelessWidget {
@@ -451,6 +470,17 @@ class _MyMessageRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
+        Text(
+          message.timeText,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFF171C1F),
+            fontSize: 10.89,
+            fontFamily: 'SF Pro',
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        const SizedBox(width: 6.05),
         Flexible(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 242),
@@ -478,17 +508,6 @@ class _MyMessageRow extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ),
-        const SizedBox(width: 6.05),
-        Text(
-          message.timeText,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF171C1F),
-            fontSize: 10.89,
-            fontFamily: 'SF Pro',
-            fontWeight: FontWeight.w400,
           ),
         ),
       ],
@@ -703,7 +722,6 @@ class _ChatMessageView {
     required this.timeText,
     required this.isMine,
     required this.senderName,
-    this.senderEmail,
     this.senderPhotoUrl,
   });
 
@@ -711,6 +729,5 @@ class _ChatMessageView {
   final String timeText;
   final bool isMine;
   final String senderName;
-  final String? senderEmail;
   final String? senderPhotoUrl;
 }
