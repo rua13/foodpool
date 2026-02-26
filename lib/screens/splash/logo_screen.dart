@@ -14,7 +14,7 @@ class _LogoScreenState extends State<LogoScreen>
   static const double _iconWidth = 14;
   static const double _iconHeight = 24;
   static const double _iconTextGap = 6;
-  static const double _initialPairGap = 20;
+  static const double _pairGap = 24;
 
   late final AnimationController _controller;
   late final Animation<double> _bothToLeftProgress;
@@ -32,20 +32,20 @@ class _LogoScreenState extends State<LogoScreen>
 
     _bothToLeftProgress = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.0, 0.34, curve: Curves.easeOutCubic),
+      curve: const Interval(0.12, 0.44, curve: Curves.easeOutCubic),
     );
     _knifeToRightProgress = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.34, 0.84, curve: Curves.easeOutCubic),
+      curve: const Interval(0.44, 0.88, curve: Curves.easeOutCubic),
     );
     _textFollowKnifeProgress = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.40, 0.92, curve: Curves.easeOutCubic),
+      curve: const Interval(0.50, 0.96, curve: Curves.easeOutCubic),
     );
     _textOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.46, 0.80, curve: Curves.easeOut),
+        curve: const Interval(0.56, 0.86, curve: Curves.easeOut),
       ),
     );
   }
@@ -77,13 +77,10 @@ class _LogoScreenState extends State<LogoScreen>
             )..layout();
             final targetIconOffset =
                 (textPainter.width / 2) + _iconTextGap + (_iconWidth / 2);
-            final leftLane = -targetIconOffset;
-            final forkStart = -_initialPairGap / 2;
-            final knifeStart = _initialPairGap / 2;
-            final forkX = forkStart +
-                (leftLane - forkStart) * _bothToLeftProgress.value;
-            final knifeAtLeft = knifeStart +
-                (leftLane - knifeStart) * _bothToLeftProgress.value;
+            final leftLaneCenter = -targetIconOffset;
+            final pairCenterX = leftLaneCenter * _bothToLeftProgress.value;
+            final forkX = pairCenterX - (_pairGap / 2);
+            final knifeAtLeft = pairCenterX + (_pairGap / 2);
             final knifeX = knifeAtLeft +
                 (targetIconOffset - knifeAtLeft) * _knifeToRightProgress.value;
             final textFollowKnifeBase = (knifeX - targetIconOffset) * 0.75;
