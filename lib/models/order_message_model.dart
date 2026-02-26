@@ -21,7 +21,11 @@ class OrderMessage {
     final createdAtRaw = data['createdAt'];
     final createdAt = createdAtRaw is Timestamp
         ? createdAtRaw.toDate()
-        : DateTime.fromMillisecondsSinceEpoch(0);
+        // pending write 중 serverTimestamp가 아직 null이면 "지금 시각"으로 간주해
+        // 하단(최신) 위치를 유지하고, 서버 확정 후에도 점프를 최소화한다.
+        : (doc.metadata.hasPendingWrites
+            ? DateTime.now()
+            : DateTime.fromMillisecondsSinceEpoch(0));
 
     return OrderMessage(
       id: doc.id,

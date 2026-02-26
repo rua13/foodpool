@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 
 import '../providers/app_auth_provider.dart';
 import '../providers/user_provider.dart';
@@ -19,7 +20,20 @@ class InitGate extends StatefulWidget {
 }
 
 class _InitGateState extends State<InitGate> {
+  static const Duration _minimumSplashDuration = Duration(milliseconds: 3000);
+
   String? _boundUid;
+  bool _isSplashMinimumElapsed = false;
+  Timer? _splashTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _splashTimer = Timer(_minimumSplashDuration, () {
+      if (!mounted) return;
+      setState(() => _isSplashMinimumElapsed = true);
+    });
+  }
 
   void _bindUserIfNeeded(String uid) {
     if (uid == _boundUid) return;
@@ -36,12 +50,18 @@ class _InitGateState extends State<InitGate> {
       );
 
   @override
+  void dispose() {
+    _splashTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final auth = context.watch<AppAuthProvider>();
     final userProvider = context.watch<UserProvider>();
 
-    // 0) Auth 상태 확정 전: 스플래시
-    if (!auth.isAuthReady) {
+    // 0) 스플래시는 최소 시간 + auth 준비 완료까지 보여준다.
+    if (!_isSplashMinimumElapsed || !auth.isAuthReady) {
       return const LogoScreen();
     }
 
