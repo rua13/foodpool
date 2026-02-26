@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:foodpool/widgets/order_card.dart';
 import 'package:foodpool/widgets/foodpool_logo.dart';
+import 'package:foodpool/widgets/status_chip.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({
@@ -39,7 +40,7 @@ class _MainPageState extends State<MainPage> {
       store: '행복한마라탕 법원점',
       price: '19,900',
       place: '소라',
-      status: _OrderStatus.inProgress,
+      status: OrderStatus.inProgress,
     ),
     _OrderCardData(
       orderId: 'order-2',
@@ -48,7 +49,7 @@ class _MainPageState extends State<MainPage> {
       store: '굽네치킨 양덕점',
       price: '19,900',
       place: '비전관',
-      status: _OrderStatus.closed,
+      status: OrderStatus.closed,
     ),
     _OrderCardData(
       orderId: 'order-3',
@@ -57,7 +58,7 @@ class _MainPageState extends State<MainPage> {
       store: '고기듬뿍대왕비빔밥 본점',
       price: '20,000',
       place: '현동홀',
-      status: _OrderStatus.inProgress,
+      status: OrderStatus.inProgress,
     ),
     _OrderCardData(
       orderId: 'order-4',
@@ -66,7 +67,7 @@ class _MainPageState extends State<MainPage> {
       store: '행복한마라탕 법원점',
       price: '19,900',
       place: '소라',
-      status: _OrderStatus.inProgress,
+      status: OrderStatus.inProgress,
     ),
   ];
 
@@ -82,7 +83,7 @@ class _MainPageState extends State<MainPage> {
               store: order.store,
               price: order.price,
               place: order.place,
-              status: _OrderStatus.inProgress,
+              status: OrderStatus.inProgress,
             ),
           )
           .toList(growable: false);
@@ -103,7 +104,7 @@ class _MainPageState extends State<MainPage> {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: 51),
               Row(
                 children: [
                   Expanded(
@@ -112,10 +113,10 @@ class _MainPageState extends State<MainPage> {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: const FoodpoolLogo(
-                          textSize: 24,
-                          iconHeight: 20,
-                          iconWidth: 12,
-                          spacing: 4,
+                          textSize: 19.3,
+                          iconHeight: 23.26,
+                          iconWidth: 13.1,
+                          spacing: 2,
                           letterSpacing: 0.07,
                         ),
                       ),
@@ -138,7 +139,7 @@ class _MainPageState extends State<MainPage> {
                 onSelectAll: () => _setOrderMode(false),
                 onSelectMine: () => _setOrderMode(true),
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 11),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 220),
@@ -190,9 +191,9 @@ class _MainPageState extends State<MainPage> {
                   },
                   child: ListView.separated(
                     key: ValueKey<bool>(_showMyOrders),
-                    padding: const EdgeInsets.only(bottom: 110),
+                    padding: const EdgeInsets.only(bottom: 10),
                     itemCount: _visibleOrders.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 15),
+                    separatorBuilder: (_, _) => const SizedBox(height: 14),
                     itemBuilder: (context, index) {
                       final order = _visibleOrders[index];
                       return _OrderCard(
@@ -228,10 +229,10 @@ class _OrderSegment extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 49,
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(5),
       decoration: ShapeDecoration(
         color: const Color(0x7FECECF0),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       child: Row(
         children: [
@@ -298,10 +299,10 @@ class _SegmentButton extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: selected ? const Color(0xFF0A0A0A) : const Color(0xFF717182),
-            fontSize: 14,
+            fontSize: 16,
             fontFamily: 'Inter',
             fontWeight: FontWeight.w500,
-            height: 1.43,
+            height: 1.25,
             letterSpacing: -0.15,
           ),
         ),
@@ -374,29 +375,29 @@ class _OrderCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  _StatusChip(status: data.status),
+                  StatusChip(status: data.status),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 11.5),
               _InfoLine(
                 iconPath: 'lib/assets/icons/clock.svg',
                 text: data.time,
                 bold: true,
                 iconSize: 20,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 12.77),
               _InfoLine(
                 iconPath: 'lib/assets/icons/store.svg',
                 text: data.store,
                 iconSize: 18,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 7.99),
               _InfoLine(
                 iconPath: 'lib/assets/icons/card.svg',
                 text: data.price,
                 iconSize: 18,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 7.99),
               _InfoLine(
                 iconPath: 'lib/assets/icons/location.svg',
                 text: data.place,
@@ -410,40 +411,6 @@ class _OrderCard extends StatelessWidget {
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.status});
-
-  final _OrderStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final isClosed = status == _OrderStatus.closed;
-
-    return Container(
-      width: 59,
-      height: 24,
-      decoration: ShapeDecoration(
-        color: isClosed ? const Color(0xFFFFF3EB) : const Color(0xFFEAF9F8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        isClosed ? '주문 마감' : '진행 중',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: isClosed ? const Color(0xFFFF5751) : const Color(0xFF2EC4B6),
-          fontSize: isClosed ? 10 : 12,
-          fontFamily: 'Inter',
-          fontWeight: FontWeight.w500,
-          height: 1.2,
-          letterSpacing: -0.45,
-        ),
-      ),
-    );
-  }
-}
 
 class _InfoLine extends StatelessWidget {
   const _InfoLine({
@@ -557,11 +524,6 @@ class _WriteButton extends StatelessWidget {
   }
 }
 
-enum _OrderStatus {
-  inProgress,
-  closed,
-}
-
 class _OrderCardData {
   const _OrderCardData({
     required this.orderId,
@@ -579,5 +541,5 @@ class _OrderCardData {
   final String store;
   final String price;
   final String place;
-  final _OrderStatus status;
+  final OrderStatus status;
 }
