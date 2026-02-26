@@ -5,6 +5,7 @@ class OrderMessage {
   final String orderId;
   final String senderId;
   final String text;
+  final String messageType;
   final DateTime createdAt;
 
   const OrderMessage({
@@ -12,6 +13,7 @@ class OrderMessage {
     required this.orderId,
     required this.senderId,
     required this.text,
+    required this.messageType,
     required this.createdAt,
   });
 
@@ -32,9 +34,12 @@ class OrderMessage {
       orderId: (data['orderId'] ?? '') as String,
       senderId: (data['senderId'] ?? '') as String,
       text: (data['text'] ?? '') as String,
+      messageType: (data['messageType'] ?? 'text') as String,
       createdAt: createdAt,
     );
   }
+
+  bool get isExitNotice => messageType == 'system_exit';
 
   Map<String, dynamic> toMapForCreate({
     required String orderId,
@@ -45,6 +50,7 @@ class OrderMessage {
       'orderId': orderId,
       'senderId': senderId,
       'text': text,
+      'messageType': 'text',
       'createdAt': FieldValue.serverTimestamp(), // ✅ 서버 타임
     };
   }

@@ -75,6 +75,19 @@ class OrderChatProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> sendExitNotice(String text) async {
+    final orderId = activeOrderId;
+    if (orderId == null) return;
+
+    try {
+      await _repo.sendExitNoticeMessage(orderId: orderId, text: text);
+    } catch (e) {
+      lastError = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   void stop() {
     activeOrderId = null;
     _msgSub?.cancel();

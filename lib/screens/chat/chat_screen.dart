@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/order_message_model.dart';
+import '../../providers/order_provider.dart';
 import '../../providers/order_chat_provider.dart';
 import '../../repositories/order_chat_repository.dart';
 import '../../models/order_member_model.dart';
@@ -76,6 +77,13 @@ class _ChatScreenState extends State<ChatScreen> {
     return '$name님이 참여하셨습니다.';
   }
 
+  String _exitNoticeText(String rawName) {
+    final name = rawName.trim();
+    if (name.isEmpty) return '참여자님이 퇴장하셨습니다.';
+    final base = name.endsWith('님') ? name.substring(0, name.length - 1) : name;
+    return '\'$base\'님이 퇴장하셨습니다.';
+  }
+
   Future<void> _send() async {
     final text = _textCtrl.text.trim();
     if (text.isEmpty) return;
@@ -103,7 +111,31 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _onTapExit() async {
     final shouldExit = await showExitConfirmDialog(context);
     if (!mounted || !shouldExit) return;
-    Navigator.of(context).maybePop();
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final authUser = FirebaseAuth.instance.currentUser;
+    final chat = context.read<OrderChatProvider>();
+    final orderProvider = context.read<OrderProvider>();
+
+    final memberName = uid == null ? '' : (chat.membersByUid[uid]?.displayName ?? '');
+    final fallbackName = authUser?.displayName?.trim().isNotEmpty == true
+        ? authUser!.displayName!.trim()
+        : (authUser?.email?.split('@').first ?? '참여자');
+    final noticeText = _exitNoticeText(memberName.isEmpty ? fallbackName : memberName);
+
+    try {
+      await chat.sendExitNotice(noticeText);
+      if (uid != null) {
+        await orderProvider.leaveOrder(widget.orderId, uid);
+      }
+      if (!mounted) return;
+      Navigator.of(context).maybePop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('퇴장 처리 실패: $e')),
+      );
+    }
   }
 
   @override
@@ -184,6 +216,13 @@ class _ChatScreenState extends State<ChatScreen> {
       }
 
       final m = item.message!;
+      if (m.isExitNotice) {
+        widgets.add(_JoinNoticeChip(text: m.text));
+        widgets.add(const SizedBox(height: 16));
+        prevMessageSenderId = null;
+        continue;
+      }
+
       final isMine = (myUid != null && m.senderId == myUid);
 
       final senderProfile = membersByUid[m.senderId];

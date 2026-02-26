@@ -89,6 +89,7 @@ class OrderChatService {
       'orderId': orderId,
       'senderId': uid,
       'text': trimmed,
+      'messageType': 'text',
       'createdAt': FieldValue.serverTimestamp(),
     });
 
@@ -97,6 +98,24 @@ class OrderChatService {
     //
     // 주의: 너 rules에서 orders.updatedAt은 클라 변경 금지로 묶어둔 적이 있었음.
     // 지금도 그 정책이면 여기서 orders를 건드리면 permission-denied 뜸.
+  }
+
+  Future<void> sendExitNoticeMessage({
+    required String orderId,
+    required String text,
+  }) async {
+    final uid = _requireUid();
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
+
+    final msgRef = _messagesCol(orderId).doc();
+    await msgRef.set({
+      'orderId': orderId,
+      'senderId': uid,
+      'text': trimmed,
+      'messageType': 'system_exit',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
   }
 
   // ---------- members (옵션 A 핵심) ----------

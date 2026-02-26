@@ -28,6 +28,13 @@ class OrderChatRepository {
     return _service.sendTextMessage(orderId: orderId, text: text);
   }
 
+  Future<void> sendExitNoticeMessage({
+    required String orderId,
+    required String text,
+  }) {
+    return _service.sendExitNoticeMessage(orderId: orderId, text: text);
+  }
+
   Stream<DocumentSnapshot<Map<String, dynamic>>> watchMemberSnap({
     required String orderId,
     required String memberUid,
