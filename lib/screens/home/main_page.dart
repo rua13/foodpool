@@ -32,65 +32,21 @@ class _MainPageState extends State<MainPage> {
     setState(() => _showMyOrders = showMyOrders);
   }
 
-  final List<_OrderCardData> _allOrders = const [
-    _OrderCardData(
-      orderId: 'order-1',
-      title: '마라탕 드실 분!',
-      time: '17:05',
-      store: '행복한마라탕 법원점',
-      price: '19,900',
-      place: '소라',
-      status: OrderStatus.inProgress,
-    ),
-    _OrderCardData(
-      orderId: 'order-2',
-      title: '고바콤',
-      time: '18:30',
-      store: '굽네치킨 양덕점',
-      price: '19,900',
-      place: '비전관',
-      status: OrderStatus.closed,
-    ),
-    _OrderCardData(
-      orderId: 'order-3',
-      title: '대왕비빔밥 (육회 비빔밥)',
-      time: '16:55',
-      store: '고기듬뿍대왕비빔밥 본점',
-      price: '20,000',
-      place: '현동홀',
-      status: OrderStatus.inProgress,
-    ),
-    _OrderCardData(
-      orderId: 'order-4',
-      title: '요아정',
-      time: '17:05',
-      store: '행복한마라탕 법원점',
-      price: '19,900',
-      place: '소라',
-      status: OrderStatus.inProgress,
-    ),
-  ];
-
   List<_OrderCardData> get _visibleOrders {
     final selectedOrders = _showMyOrders ? widget.myOrders : widget.allOrders;
-    if (selectedOrders.isNotEmpty) {
-      return selectedOrders
-          .map(
-            (order) => _OrderCardData(
-              orderId: order.orderId,
-              title: order.title,
-              time: order.time,
-              store: order.store,
-              price: order.price,
-              place: order.place,
-              status: OrderStatus.inProgress,
-            ),
-          )
-          .toList(growable: false);
-    }
-
-    if (!_showMyOrders) return _allOrders;
-    return _allOrders.take(2).toList(growable: false);
+    return selectedOrders
+        .map(
+          (order) => _OrderCardData(
+            orderId: order.orderId,
+            title: order.title,
+            time: order.time,
+            store: order.store,
+            price: order.price,
+            place: order.place,
+            status: OrderStatus.inProgress,
+          ),
+        )
+        .toList(growable: false);
   }
 
   @override
