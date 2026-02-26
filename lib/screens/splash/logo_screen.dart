@@ -11,10 +11,15 @@ class LogoScreen extends StatefulWidget {
 
 class _LogoScreenState extends State<LogoScreen>
     with SingleTickerProviderStateMixin {
+  static const double _iconWidth = 14;
+  static const double _iconHeight = 24;
+  static const double _iconTextGap = 6;
+  static const double _initialPairGap = 20;
+
   late final AnimationController _controller;
-  late final Animation<double> _forkX;
-  late final Animation<double> _knifeX;
-  late final Animation<double> _textX;
+  late final Animation<double> _bothToLeftProgress;
+  late final Animation<double> _knifeToRightProgress;
+  late final Animation<double> _textFollowKnifeProgress;
   late final Animation<double> _textOpacity;
 
   @override
@@ -22,31 +27,25 @@ class _LogoScreenState extends State<LogoScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1300),
+      duration: const Duration(milliseconds: 1400),
     )..forward();
 
-    _forkX = Tween<double>(begin: 0, end: -78).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.42, curve: Curves.easeOutCubic),
-      ),
+    _bothToLeftProgress = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.34, curve: Curves.easeOutCubic),
     );
-    _knifeX = Tween<double>(begin: 0, end: 78).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.30, 0.74, curve: Curves.easeOutCubic),
-      ),
+    _knifeToRightProgress = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.34, 0.84, curve: Curves.easeOutCubic),
     );
-    _textX = Tween<double>(begin: -18, end: 0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.44, 1, curve: Curves.easeOutCubic),
-      ),
+    _textFollowKnifeProgress = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.40, 0.92, curve: Curves.easeOutCubic),
     );
     _textOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.44, 0.88, curve: Curves.easeOut),
+        curve: const Interval(0.46, 0.80, curve: Curves.easeOut),
       ),
     );
   }
@@ -65,6 +64,32 @@ class _LogoScreenState extends State<LogoScreen>
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, _) {
+            final brandStyle = GoogleFonts.unbounded(
+              color: const Color(0xFFFF5751),
+              fontSize: 30.01,
+              fontWeight: FontWeight.w700,
+              height: 0.74,
+              letterSpacing: 0.19,
+            );
+            final textPainter = TextPainter(
+              text: TextSpan(text: 'FOODPOOL', style: brandStyle),
+              textDirection: TextDirection.ltr,
+            )..layout();
+            final targetIconOffset =
+                (textPainter.width / 2) + _iconTextGap + (_iconWidth / 2);
+            final leftLane = -targetIconOffset;
+            final forkStart = -_initialPairGap / 2;
+            final knifeStart = _initialPairGap / 2;
+            final forkX = forkStart +
+                (leftLane - forkStart) * _bothToLeftProgress.value;
+            final knifeAtLeft = knifeStart +
+                (leftLane - knifeStart) * _bothToLeftProgress.value;
+            final knifeX = knifeAtLeft +
+                (targetIconOffset - knifeAtLeft) * _knifeToRightProgress.value;
+            final textFollowKnifeBase = (knifeX - targetIconOffset) * 0.75;
+            final textX = textFollowKnifeBase *
+                (1 - _textFollowKnifeProgress.value);
+
             return SizedBox(
               width: 320,
               height: 64,
@@ -72,35 +97,29 @@ class _LogoScreenState extends State<LogoScreen>
                 alignment: Alignment.center,
                 children: [
                   Transform.translate(
-                    offset: Offset(_forkX.value, 0),
+                    offset: Offset(forkX, 0),
                     child: SvgPicture.asset(
                       'lib/assets/icons/logo1.svg',
-                      width: 14,
-                      height: 24,
+                      width: _iconWidth,
+                      height: _iconHeight,
                     ),
                   ),
                   Transform.translate(
-                    offset: Offset(_knifeX.value, 0),
+                    offset: Offset(knifeX, 0),
                     child: SvgPicture.asset(
                       'lib/assets/icons/logo2.svg',
-                      width: 14,
-                      height: 24,
+                      width: _iconWidth,
+                      height: _iconHeight,
                     ),
                   ),
                   Opacity(
                     opacity: _textOpacity.value,
                     child: Transform.translate(
-                      offset: Offset(_textX.value, 0),
+                      offset: Offset(textX, 0),
                       child: Text(
                         'FOODPOOL',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.unbounded(
-                          color: const Color(0xFFFF5751),
-                          fontSize: 30.01,
-                          fontWeight: FontWeight.w700,
-                          height: 0.74,
-                          letterSpacing: 0.19,
-                        ),
+                        style: brandStyle,
                       ),
                     ),
                   ),

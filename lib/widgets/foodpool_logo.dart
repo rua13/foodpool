@@ -8,7 +8,7 @@ class FoodpoolLogo extends StatelessWidget {
     this.textSize = 30,
     this.iconHeight = 24,
     this.iconWidth = 14,
-    this.spacing = 2.5,
+    this.spacing = 6,
     this.color = const Color(0xFFFF5751),
     this.letterSpacing = 0.19,
     this.fontWeight = FontWeight.w700,

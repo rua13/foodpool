@@ -115,7 +115,7 @@ class _MainPageState extends State<MainPage> {
                           textSize: 24,
                           iconHeight: 20,
                           iconWidth: 12,
-                          spacing: 2,
+                          spacing: 4,
                           letterSpacing: 0.07,
                         ),
                       ),

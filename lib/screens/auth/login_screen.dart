@@ -30,7 +30,7 @@ class LoginScreen extends StatelessWidget {
                       textSize: 30.01,
                       iconHeight: 24,
                       iconWidth: 14,
-                      spacing: 2.5,
+                      spacing: 6,
                       letterSpacing: 0.19,
                     ),
                   ),
