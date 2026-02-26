@@ -92,7 +92,11 @@ class MyApp extends StatelessWidget {
 
         GoRoute(
           path: '/create',
-          builder: (context, state) => const CreateOrderScreen(),
+          builder: (context, state) {
+            final extra = state.extra;
+            final prefill = extra is CreateOrderPrefillData ? extra : null;
+            return CreateOrderScreen(prefill: prefill);
+          },
         ),
 
         GoRoute(

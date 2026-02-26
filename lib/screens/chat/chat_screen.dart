@@ -26,7 +26,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   // Customize exit log format here. Use `{name}` placeholder for nickname.
-  static const String _exitNoticeTemplate = "'{name}'님이 퇴장하셨습니다.";
+  static const String _exitNoticeTemplate = '{name}님이 퇴장하셨습니다.';
   static const String _exitNoticeFallback = '참여자님이 퇴장하셨습니다.';
 
   final _textCtrl = TextEditingController();

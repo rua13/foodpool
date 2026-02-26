@@ -32,6 +32,7 @@ class OrderRepository {
     required String depositMethods,
     required int minimumOrderAmount,
     required int deliveryFee,
+    required String note,
     required Timestamp endAt,
   }) async {
     final ref = _svc.ordersCol().doc();
@@ -48,6 +49,7 @@ class OrderRepository {
       'depositMethods': depositMethods,
       'minimumOrderAmount': minimumOrderAmount,
       'deliveryFee': deliveryFee,
+      'note': note,
 
       'endAt': endAt,
       'isClosed': false,
@@ -60,6 +62,32 @@ class OrderRepository {
     });
 
     return ref.id;
+  }
+
+  Future<void> updateOrder({
+    required String orderId,
+    required String title,
+    required String storeName,
+    required String pickupSpot,
+    required String link,
+    required String depositMethods,
+    required int minimumOrderAmount,
+    required int deliveryFee,
+    required String note,
+    required Timestamp endAt,
+  }) {
+    return _svc.ordersCol().doc(orderId).update({
+      'title': title,
+      'storeName': storeName,
+      'pickupSpot': pickupSpot,
+      'link': link,
+      'depositMethods': depositMethods,
+      'minimumOrderAmount': minimumOrderAmount,
+      'deliveryFee': deliveryFee,
+      'note': note,
+      'endAt': endAt,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<void> sendMessage({
@@ -120,6 +148,20 @@ class OrderRepository {
         'memberCount': (currentCount - 1).clamp(0, 1 << 30),
       });
     });
+  }
+
+  Future<void> setOrderClosed({
+    required String orderId,
+    required bool isClosed,
+  }) {
+    return _svc.ordersCol().doc(orderId).update({
+      'isClosed': isClosed,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> deleteOrder({required String orderId}) {
+    return _svc.ordersCol().doc(orderId).delete();
   }
 
 }

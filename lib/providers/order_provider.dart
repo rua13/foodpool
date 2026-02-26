@@ -20,6 +20,7 @@ class OrderProvider extends ChangeNotifier {
     required String depositMethods,
     required int minimumOrderAmount,
     required int deliveryFee,
+    required String note,
     required DateTime endAtLocal,
   }) async {
     error = null;
@@ -37,6 +38,7 @@ class OrderProvider extends ChangeNotifier {
         depositMethods: depositMethods,
         minimumOrderAmount: minimumOrderAmount,
         deliveryFee: deliveryFee,
+        note: note,
         endAt: ts,
       );
       return orderId;
@@ -51,6 +53,36 @@ class OrderProvider extends ChangeNotifier {
 
   Future<bool> joinOrder(String orderId, String uid) =>
       _repo.joinOrder(orderId: orderId, uid: uid);
-  Future<void> leaveOrder(String orderId, String uid) => _repo.leaveOrder(orderId: orderId, uid: uid);
+  Future<void> leaveOrder(String orderId, String uid) =>
+      _repo.leaveOrder(orderId: orderId, uid: uid);
+  Future<void> updateOrder({
+    required String orderId,
+    required String title,
+    required String storeName,
+    required String pickupSpot,
+    required String link,
+    required String depositMethods,
+    required int minimumOrderAmount,
+    required int deliveryFee,
+    required String note,
+    required DateTime endAtLocal,
+  }) async {
+    final ts = Timestamp.fromDate(endAtLocal);
+    await _repo.updateOrder(
+      orderId: orderId,
+      title: title,
+      storeName: storeName,
+      pickupSpot: pickupSpot,
+      link: link,
+      depositMethods: depositMethods,
+      minimumOrderAmount: minimumOrderAmount,
+      deliveryFee: deliveryFee,
+      note: note,
+      endAt: ts,
+    );
+  }
 
+  Future<void> setOrderClosed(String orderId, bool isClosed) =>
+      _repo.setOrderClosed(orderId: orderId, isClosed: isClosed);
+  Future<void> deleteOrder(String orderId) => _repo.deleteOrder(orderId: orderId);
 }
