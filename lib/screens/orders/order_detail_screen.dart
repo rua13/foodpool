@@ -3,13 +3,16 @@ import 'package:foodpool/providers/app_auth_provider.dart';
 import 'package:foodpool/services/order_chat_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:foodpool/widgets/status_chip.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../providers/order_provider.dart';
 import '../../repositories/order_repository.dart';
+import 'create_order_screen.dart';
+import '../../widgets/exit_confirm_dialog.dart';
+
+enum _OwnerMenuAction { toggleClosed, edit, delete }
 
 class OrderDetailScreen extends StatelessWidget {
   const OrderDetailScreen({super.key, required this.orderId});
@@ -45,8 +48,10 @@ class OrderDetailScreen extends StatelessWidget {
     final depositMethods = (data['depositMethods'] ?? '-').toString();
 
     final note = (data['note'] ?? '').toString().trim();
-    final noteStr = note.isEmpty ? '채팅방 들어오면 바로 계좌 보내드릴게용' : note;
-    final isClosed = endAt != null && endAt.toDate().isBefore(DateTime.now());
+    final noteStr = note;
+    final isClosed = data['isClosed'] is bool
+        ? data['isClosed'] as bool
+        : (endAt != null && endAt.toDate().isBefore(DateTime.now()));
 
     return _OrderDetailData(
       title: (data['title'] ?? '-').toString(),
@@ -108,9 +113,69 @@ class OrderDetailScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _handleOwnerMenuAction(
+    BuildContext context, {
+    required _OwnerMenuAction action,
+    required OrderStatus status,
+    required Map<String, dynamic> rawData,
+  }) async {
+    final orderProvider = context.read<OrderProvider>();
+    try {
+      switch (action) {
+        case _OwnerMenuAction.toggleClosed:
+          final shouldClose = status == OrderStatus.inProgress;
+          final confirmed = await showExitConfirmDialog(
+            context,
+            title: shouldClose
+                ? '새로운 참여자를 받을 수 없게 돼요.\n주문을 마감할까요?'
+                : '다시 참여자를 받을 수 있게 돼요.\n주문 마감을 취소할까요?',
+            cancelText: '취소',
+            confirmText: shouldClose ? '마감하기' : '마감 취소하기',
+          );
+          if (!confirmed || !context.mounted) return;
+          await orderProvider.setOrderClosed(orderId, shouldClose);
+          break;
+        case _OwnerMenuAction.edit:
+          final confirmed = await showExitConfirmDialog(
+            context,
+            title: '주문 정보를 수정할까요?\n수정 화면으로 이동할게요.',
+            cancelText: '취소',
+            confirmText: '수정하기',
+          );
+          if (!confirmed || !context.mounted) return;
+          context.push(
+            '/create',
+            extra: CreateOrderPrefillData.fromOrderDoc(
+              orderId: orderId,
+              data: rawData,
+            ),
+          );
+          break;
+        case _OwnerMenuAction.delete:
+          final confirmed = await showExitConfirmDialog(
+            context,
+            title: '삭제한 글은 복구할 수 없게 돼요.\n정말 삭제할까요?',
+            cancelText: '취소',
+            confirmText: '삭제하기',
+          );
+          if (!confirmed || !context.mounted) return;
+          await orderProvider.deleteOrder(orderId);
+          if (!context.mounted) return;
+          context.pop();
+          break;
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('처리 중 오류가 발생했어요: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final repo = context.read<OrderRepository>();
+    final myUid = context.watch<AppAuthProvider>().user?.uid;
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: repo.watchOrderSnap(orderId),
       builder: (context, snap) {
@@ -139,7 +204,10 @@ class OrderDetailScreen extends StatelessWidget {
           );
         }
 
-        final data = _mapDocToDetail(doc.data()!);
+        final raw = doc.data()!;
+        final data = _mapDocToDetail(raw);
+        final ownerId = (raw['ownerId'] ?? '').toString();
+        final isOwner = myUid != null && myUid == ownerId;
 
         return Scaffold(
           backgroundColor: const Color(0xFFFFFBF8),
@@ -165,9 +233,10 @@ class OrderDetailScreen extends StatelessWidget {
                       const SizedBox(width: 20.57),
                       Text(
                         '공동주문 상세',
-                        style: GoogleFonts.inter(
+                        style: const TextStyle(
                           color: Color(0xFF0A0A0A),
                           fontSize: 20,
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,
                           height: 1.5,
                           letterSpacing: -0.45,
@@ -176,7 +245,18 @@ class OrderDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 28.93),
-                  _OrderInformationCard(data: data),
+                  _OrderInformationCard(
+                    data: data,
+                    isOwner: isOwner,
+                    onOwnerMenuSelected: (action) {
+                      _handleOwnerMenuAction(
+                        context,
+                        action: action,
+                        status: data.status,
+                        rawData: raw,
+                      );
+                    },
+                  ),
                   const SizedBox(height: 23.9),
                   SizedBox(
                     width: double.infinity,
@@ -194,9 +274,10 @@ class OrderDetailScreen extends StatelessWidget {
                       child: Text(
                         '채팅하기',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.inter(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 19,
+                          fontFamily: 'Inter',
                           fontWeight: FontWeight.w500,
                           height: 1.26,
                           letterSpacing: -0.31,
@@ -215,9 +296,15 @@ class OrderDetailScreen extends StatelessWidget {
 }
 
 class _OrderInformationCard extends StatelessWidget {
-  const _OrderInformationCard({required this.data});
+  const _OrderInformationCard({
+    required this.data,
+    required this.isOwner,
+    required this.onOwnerMenuSelected,
+  });
 
   final _OrderDetailData data;
+  final bool isOwner;
+  final ValueChanged<_OwnerMenuAction> onOwnerMenuSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -251,15 +338,16 @@ class _OrderInformationCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(width: 12,),
               Expanded(
                 child: Text(
                   data.title,
-                  style: GoogleFonts.inter(
+                  style: const TextStyle(
                     color: Color(0xFF0A0A0A),
                     fontSize: 18,
+                    fontFamily: 'Inter',
                     fontWeight: FontWeight.w700,
                     height: 1.5,
                     letterSpacing: -0.44,
@@ -268,6 +356,69 @@ class _OrderInformationCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               StatusChip(status: data.status),
+              if (isOwner) ...[
+                const SizedBox(width: 6),
+                PopupMenuButton<_OwnerMenuAction>(
+                  tooltip: '',
+                  offset: const Offset(0, 36),
+                  elevation: 8,
+                  popUpAnimationStyle: AnimationStyle.noAnimation,
+                  color: Colors.white,
+                  constraints: const BoxConstraints(minWidth: 120, maxWidth: 120),
+                  shape: RoundedRectangleBorder(
+                    side: const BorderSide(width: 0.65, color: Color(0xFFE5E7EB)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onSelected: onOwnerMenuSelected,
+                  itemBuilder: (context) => [
+                    PopupMenuItem<_OwnerMenuAction>(
+                      value: _OwnerMenuAction.toggleClosed,
+                      height: 41,
+                      child: _OwnerMenuItemText(
+                        text: data.status == OrderStatus.inProgress
+                            ? '주문 마감'
+                            : '마감 취소하기',
+                        color: const Color(0xFF666666),
+                      ),
+                    ),
+                    const PopupMenuItem<_OwnerMenuAction>(
+                      value: _OwnerMenuAction.edit,
+                      height: 41,
+                      child: _OwnerMenuItemText(
+                        text: '수정하기',
+                        color: Color(0xFF666666),
+                      ),
+                    ),
+                    const PopupMenuItem<_OwnerMenuAction>(
+                      value: _OwnerMenuAction.delete,
+                      height: 41,
+                      child: _OwnerMenuItemText(
+                        text: '삭제하기',
+                        color: Color(0xFFFF5751),
+                      ),
+                    ),
+                  ],
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(9999),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: SvgPicture.asset(
+                      'lib/assets/icons/threedots.svg',
+                      width: 20,
+                      height: 20,
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFF666666),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 16),
@@ -294,21 +445,48 @@ class _OrderInformationCard extends StatelessWidget {
             height: 1,
             color: Colors.black.withValues(alpha: 0.10),
           ),
-          const SizedBox(height: 18),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Text(
-              data.note,
-              style: GoogleFonts.inter(
-                color: Color(0xCC0A0A0A),
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                height: 1.63,
-                letterSpacing: -0.31,
+          if (data.note.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Text(
+                data.note,
+                style: const TextStyle(
+                  color: Color(0xCC0A0A0A),
+                  fontSize: 16,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w400,
+                  height: 1.63,
+                  letterSpacing: -0.31,
+                ),
               ),
             ),
-          ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _OwnerMenuItemText extends StatelessWidget {
+  const _OwnerMenuItemText({
+    required this.text,
+    required this.color,
+  });
+
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: color,
+        fontSize: 14,
+        fontFamily: 'Inter',
+        fontWeight: FontWeight.w500,
+        height: 1.5,
       ),
     );
   }
@@ -333,9 +511,10 @@ class _InfoRow extends StatelessWidget {
           width: 106.5,
           child: Text(
             label,
-            style: GoogleFonts.inter(
+            style: const TextStyle(
               color: Color(0xFF717182),
               fontSize: 14,
+              fontFamily: 'Inter',
               fontWeight: FontWeight.w400,
               height: 1.43,
               letterSpacing: -0.15,
@@ -346,9 +525,10 @@ class _InfoRow extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.left,
-            style: GoogleFonts.inter(
+            style: const TextStyle(
               color: Color(0xFF0A0A0A),
               fontSize: 16,
+              fontFamily: 'Inter',
               fontWeight: FontWeight.w500,
               height: 1.5,
               letterSpacing: -0.31,

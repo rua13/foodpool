@@ -4,14 +4,68 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../providers/app_auth_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../services/order_chat_service.dart';
 import '../../widgets/time_setting_dialog.dart';
 
+class CreateOrderPrefillData {
+  const CreateOrderPrefillData({
+    required this.orderId,
+    required this.title,
+    required this.storeName,
+    required this.pickupSpot,
+    required this.link,
+    required this.depositMethods,
+    required this.minimumOrderAmount,
+    required this.deliveryFee,
+    required this.note,
+    required this.endAt,
+  });
+
+  factory CreateOrderPrefillData.fromOrderDoc({
+    required String orderId,
+    required Map<String, dynamic> data,
+  }) {
+    int? parseInt(dynamic v) {
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      return null;
+    }
+
+    final ts = data['endAt'] is Timestamp ? data['endAt'] as Timestamp : null;
+    return CreateOrderPrefillData(
+      orderId: orderId,
+      title: (data['title'] ?? '').toString(),
+      storeName: (data['storeName'] ?? '').toString(),
+      pickupSpot: (data['pickupSpot'] ?? '').toString(),
+      link: (data['link'] ?? '').toString(),
+      depositMethods: (data['depositMethods'] ?? '').toString(),
+      minimumOrderAmount: parseInt(data['minimumOrderAmount']),
+      deliveryFee: parseInt(data['deliveryFee']),
+      note: (data['note'] ?? '').toString(),
+      endAt: ts?.toDate(),
+    );
+  }
+
+  final String orderId;
+  final String title;
+  final String storeName;
+  final String pickupSpot;
+  final String link;
+  final String depositMethods;
+  final int? minimumOrderAmount;
+  final int? deliveryFee;
+  final String note;
+  final DateTime? endAt;
+}
+
 class CreateOrderScreen extends StatefulWidget {
-  const CreateOrderScreen({super.key});
+  const CreateOrderScreen({super.key, this.prefill});
+
+  final CreateOrderPrefillData? prefill;
 
   @override
   State<CreateOrderScreen> createState() => _CreateOrderScreenState();
@@ -30,6 +84,29 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   final _noteCtrl = TextEditingController();
 
   TimeOfDay? _selectedTime;
+  bool get _isEditMode => widget.prefill != null;
+  String get _submitButtonLabel => _isEditMode ? '수정하기' : '게시하기';
+  String get _screenTitle => _isEditMode ? '공동주문 수정하기' : '공동주문 만들기';
+
+  @override
+  void initState() {
+    super.initState();
+    final prefill = widget.prefill;
+    if (prefill == null) return;
+
+    _titleCtrl.text = prefill.title;
+    _storeNameCtrl.text = prefill.storeName;
+    _pickupCtrl.text = prefill.pickupSpot;
+    _linkCtrl.text = prefill.link == '-' ? '' : prefill.link;
+    _depositMethodsCtrl.text = prefill.depositMethods;
+    _minOrderAmountCtrl.text = prefill.minimumOrderAmount?.toString() ?? '';
+    _deliveryFeeCtrl.text = prefill.deliveryFee?.toString() ?? '';
+    _noteCtrl.text = prefill.note;
+    if (prefill.endAt != null) {
+      final t = prefill.endAt!;
+      _selectedTime = TimeOfDay(hour: t.hour, minute: t.minute);
+    }
+  }
 
   @override
   void dispose() {
@@ -55,6 +132,11 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     final digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
     if (digits.isEmpty) return null;
     return int.tryParse(digits);
+  }
+
+  String _normalizedLink() {
+    final v = _linkCtrl.text.trim();
+    return v.isEmpty ? '-' : v;
   }
 
   bool _isSubmitEnabled(bool isLoading) {
@@ -116,48 +198,69 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     }
 
     try {
-      final orderId = await orderProvider.createOrder(
-            ownerId: uid,
-            title: _titleCtrl.text.trim(),
-            storeName: _storeNameCtrl.text.trim(),
-            pickupSpot: _pickupCtrl.text.trim(),
-            link: _linkCtrl.text.trim().isEmpty ? '-' : _linkCtrl.text.trim(),
-            depositMethods: _depositMethodsCtrl.text.trim(),
-            minimumOrderAmount: minOrderAmount,
-            deliveryFee: deliveryFee,
-            endAtLocal: endAt,
+      if (_isEditMode) {
+        final targetOrderId = widget.prefill!.orderId;
+        await orderProvider.updateOrder(
+          orderId: targetOrderId,
+          title: _titleCtrl.text.trim(),
+          storeName: _storeNameCtrl.text.trim(),
+          pickupSpot: _pickupCtrl.text.trim(),
+          link: _normalizedLink(),
+          depositMethods: _depositMethodsCtrl.text.trim(),
+          minimumOrderAmount: minOrderAmount,
+          deliveryFee: deliveryFee,
+          note: _noteCtrl.text.trim(),
+          endAtLocal: endAt,
+        );
+        if (!mounted) return;
+        await _showSubmitSuccessDialog(isEditMode: true);
+        if (!mounted) return;
+        context.go('/order/$targetOrderId');
+      } else {
+        final orderId = await orderProvider.createOrder(
+          ownerId: uid,
+          title: _titleCtrl.text.trim(),
+          storeName: _storeNameCtrl.text.trim(),
+          pickupSpot: _pickupCtrl.text.trim(),
+          link: _normalizedLink(),
+          depositMethods: _depositMethodsCtrl.text.trim(),
+          minimumOrderAmount: minOrderAmount,
+          deliveryFee: deliveryFee,
+          note: _noteCtrl.text.trim(),
+          endAtLocal: endAt,
+        );
+        final displayName = authUser?.displayName?.trim().isNotEmpty == true
+            ? authUser!.displayName!.trim()
+            : (authUser?.email?.split('@').first ?? '사용자');
+        final photoUrl = (authUser?.photoURL ?? '').trim();
+        try {
+          await chatService.upsertMyMemberProfile(
+            orderId: orderId,
+            displayName: displayName,
+            photoUrl: photoUrl,
           );
-      final displayName = authUser?.displayName?.trim().isNotEmpty == true
-          ? authUser!.displayName!.trim()
-          : (authUser?.email?.split('@').first ?? '사용자');
-      final photoUrl = (authUser?.photoURL ?? '').trim();
-      try {
-        await chatService.upsertMyMemberProfile(
-              orderId: orderId,
-              displayName: displayName,
-              photoUrl: photoUrl,
-            );
-      } catch (e) {
-        debugPrint('owner member upsert skipped: $e');
+        } catch (e) {
+          debugPrint('owner member upsert skipped: $e');
+        }
+        if (!mounted) return;
+        await _showSubmitSuccessDialog(isEditMode: false);
+        if (!mounted) return;
+        context.go('/home');
       }
-      if (!mounted) return;
-      await _showSubmitSuccessDialog();
-      if (!mounted) return;
-      context.go('/home');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('생성 실패: $e')),
+        SnackBar(content: Text('${_isEditMode ? '수정' : '생성'} 실패: $e')),
       );
     }
   }
 
-  Future<void> _showSubmitSuccessDialog() {
+  Future<void> _showSubmitSuccessDialog({required bool isEditMode}) {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.50),
-      builder: (context) => const _CreateOrderSuccessDialog(),
+      builder: (context) => _CreateOrderSuccessDialog(isEditMode: isEditMode),
     );
   }
 
@@ -312,7 +415,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                   ),
                   const SizedBox(width: 18),
                   Text(
-                    '공동주문 만들기',
+                    _screenTitle,
                     style: GoogleFonts.inter(
                       color: const Color(0xFF0A0A0A),
                       fontSize: 20,
@@ -571,7 +674,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                                   ),
                                 )
                               : Text(
-                                  '게시하기',
+                                  _submitButtonLabel,
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.inter(
                                     color: Colors.white,
@@ -615,7 +718,9 @@ class _GuideText extends StatelessWidget {
 }
 
 class _CreateOrderSuccessDialog extends StatelessWidget {
-  const _CreateOrderSuccessDialog();
+  const _CreateOrderSuccessDialog({required this.isEditMode});
+
+  final bool isEditMode;
 
   @override
   Widget build(BuildContext context) {
@@ -658,7 +763,7 @@ class _CreateOrderSuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              '게시 완료!',
+              isEditMode ? '수정 완료!' : '게시 완료!',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 color: const Color(0xFF0A0A0A),
@@ -670,7 +775,7 @@ class _CreateOrderSuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '공동주문이 성공적으로 생성되었습니다',
+              isEditMode ? '공동주문이 성공적으로 수정되었습니다' : '공동주문이 성공적으로 생성되었습니다',
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 color: const Color(0xB20A0A0A),
