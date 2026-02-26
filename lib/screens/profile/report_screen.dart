@@ -140,11 +140,18 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Future<void> _submit() async {
     if (!_canSubmit) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('신고가 접수되었습니다.')),
-    );
+    await _showSubmitSuccessDialog();
     if (!mounted) return;
     context.pop();
+  }
+
+  Future<void> _showSubmitSuccessDialog() {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.50),
+      builder: (context) => const _ReportSuccessDialog(),
+    );
   }
 
   TextStyle get _sectionTitleStyle => const TextStyle(
@@ -435,6 +442,109 @@ class _ReasonOption extends StatelessWidget {
                       ),
                     )
                   : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReportSuccessDialog extends StatelessWidget {
+  const _ReportSuccessDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Container(
+        width: 345.73,
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+        decoration: ShapeDecoration(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shadows: const [
+            BoxShadow(
+              color: Color(0x3F000000),
+              blurRadius: 50,
+              offset: Offset(0, 25),
+              spreadRadius: -12,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: ShapeDecoration(
+                color: const Color(0x19FF5A3C),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20642200),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(
+                'lib/assets/icons/check.svg',
+                width: 40,
+                height: 40,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '신고 완료!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF0A0A0A),
+                fontSize: 18,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w700,
+                height: 1.56,
+                letterSpacing: -0.44,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              '신고가 성공적으로 접수되었습니다',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xB20A0A0A),
+                fontSize: 14,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w400,
+                height: 1.43,
+                letterSpacing: -0.15,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF5751),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: const Text(
+                  '확인',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
+                    height: 1.50,
+                    letterSpacing: -0.31,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
