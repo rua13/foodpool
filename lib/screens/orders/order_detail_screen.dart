@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:foodpool/providers/app_auth_provider.dart';
 import 'package:foodpool/services/order_chat_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:foodpool/widgets/status_chip.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -57,7 +58,7 @@ class OrderDetailScreen extends StatelessWidget {
       depositMethod: depositMethods,
       link: (data['link'] ?? '-').toString(),
       note: noteStr,
-      status: isClosed ? _OrderDetailStatus.closed : _OrderDetailStatus.inProgress,
+      status: isClosed ? OrderStatus.closed : OrderStatus.inProgress,
     );
   }
 
@@ -128,7 +129,7 @@ class OrderDetailScreen extends StatelessWidget {
           backgroundColor: const Color(0xFFFFFBF8),
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 14, 24, 28),
+              padding: const EdgeInsets.fromLTRB(25, 54, 25, 28),
               child: Column(
                 children: [
                   Row(
@@ -145,7 +146,7 @@ class OrderDetailScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 18),
+                      const SizedBox(width: 20.57),
                       Text(
                         '공동주문 상세',
                         style: GoogleFonts.inter(
@@ -158,9 +159,9 @@ class OrderDetailScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 28.93),
                   _OrderInformationCard(data: data),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 23.9),
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -236,6 +237,7 @@ class _OrderInformationCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(width: 12,),
               Expanded(
                 child: Text(
                   data.title,
@@ -249,7 +251,7 @@ class _OrderInformationCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              _DetailStatusChip(status: data.status),
+              StatusChip(status: data.status),
             ],
           ),
           const SizedBox(height: 16),
@@ -257,7 +259,7 @@ class _OrderInformationCard extends StatelessWidget {
             height: 1,
             color: Colors.black.withValues(alpha: 0.10),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18.78),
           _InfoRow(label: '주문 시간', value: data.time),
           const SizedBox(height: 15),
           _InfoRow(label: '가게명', value: data.storeName),
@@ -271,20 +273,23 @@ class _OrderInformationCard extends StatelessWidget {
           _InfoRow(label: '입금 방법', value: data.depositMethod),
           const SizedBox(height: 15),
           _InfoRow(label: '링크', value: data.link),
-          const SizedBox(height: 18),
+          const SizedBox(height: 18.78),
           Divider(
             height: 1,
             color: Colors.black.withValues(alpha: 0.10),
           ),
           const SizedBox(height: 18),
-          Text(
-            data.note,
-            style: GoogleFonts.inter(
-              color: Color(0xCC0A0A0A),
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              height: 1.63,
-              letterSpacing: -0.31,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Text(
+              data.note,
+              style: GoogleFonts.inter(
+                color: Color(0xCC0A0A0A),
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                height: 1.63,
+                letterSpacing: -0.31,
+              ),
             ),
           ),
         ],
@@ -307,8 +312,9 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(width: 12,),
         SizedBox(
-          width: 94,
+          width: 106.5,
           child: Text(
             label,
             style: GoogleFonts.inter(
@@ -340,41 +346,6 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _DetailStatusChip extends StatelessWidget {
-  const _DetailStatusChip({required this.status});
-
-  final _OrderDetailStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final isClosed = status == _OrderDetailStatus.closed;
-    return Container(
-      width: 59,
-      height: 24,
-      decoration: ShapeDecoration(
-        color: isClosed ? const Color(0xFFFFF3EB) : const Color(0xFFEAF9F8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        isClosed ? '주문 마감' : '진행 중',
-        textAlign: TextAlign.center,
-        style: GoogleFonts.inter(
-          color: isClosed ? const Color(0xFFFF5751) : const Color(0xFF2EC4B6),
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          height: 2.5,
-          letterSpacing: -0.45,
-        ),
-      ),
-    );
-  }
-}
-
-enum _OrderDetailStatus {
-  inProgress,
-  closed,
-}
 
 class _OrderDetailData {
   const _OrderDetailData({
@@ -399,5 +370,5 @@ class _OrderDetailData {
   final String depositMethod;
   final String link;
   final String note;
-  final _OrderDetailStatus status;
+  final OrderStatus status;
 }
