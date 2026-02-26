@@ -25,12 +25,17 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  // Customize exit log format here. Use `{name}` placeholder for nickname.
+  static const String _exitNoticeTemplate = "'{name}'님이 퇴장하셨습니다.";
+  static const String _exitNoticeFallback = '참여자님이 퇴장하셨습니다.';
+
   final _textCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
 
   StreamSubscription? _orderSub;
   String _title = '공동주문';
   int _participantCount = 1;
+  bool _isOwner = false;
 
   @override
   void initState() {
@@ -47,10 +52,12 @@ class _ChatScreenState extends State<ChatScreen> {
     _orderSub = repo.watchOrderSnap(widget.orderId).listen((snap) {
       final data = snap.data();
       if (data == null) return;
+      final currentUid = FirebaseAuth.instance.currentUser?.uid;
 
       setState(() {
         _title = (data['title'] ?? '공동주문').toString();
         _participantCount = (data['memberCount'] is int) ? data['memberCount'] as int : 1;
+        _isOwner = (currentUid != null && data['ownerId'] == currentUid);
       });
     });
   }
@@ -70,18 +77,11 @@ class _ChatScreenState extends State<ChatScreen> {
     return '$period  ${hour12.toString().padLeft(2, '0')}:$minute';
   }
 
-  String _joinNoticeText(String rawName) {
-    final name = rawName.trim();
-    if (name.isEmpty) return '참여자님이 참여하셨습니다.';
-    if (name.endsWith('님')) return '$name이 참여하셨습니다.';
-    return '$name님이 참여하셨습니다.';
-  }
-
   String _exitNoticeText(String rawName) {
     final name = rawName.trim();
-    if (name.isEmpty) return '참여자님이 퇴장하셨습니다.';
+    if (name.isEmpty) return _exitNoticeFallback;
     final base = name.endsWith('님') ? name.substring(0, name.length - 1) : name;
-    return '\'$base\'님이 퇴장하셨습니다.';
+    return _exitNoticeTemplate.replaceAll('{name}', base);
   }
 
   Future<void> _send() async {
@@ -155,6 +155,7 @@ class _ChatScreenState extends State<ChatScreen> {
               participantCount: _participantCount,
               onTapBack: () => Navigator.of(context).maybePop(),
               onTapExit: _onTapExit,
+              showExit: !_isOwner,
             ),
             Expanded(
               child: chat.isLoading 
@@ -190,33 +191,11 @@ class _ChatScreenState extends State<ChatScreen> {
     required Map<String, OrderMember> membersByUid,
   }) {
     final widgets = <Widget>[];
-    final timeline = <_ChatTimelineItem>[
-      ...membersByUid.values
-          .where((member) => member.joinedAt != null)
-          .map((member) => _ChatTimelineItem.join(member)),
-      ...messages.map((message) => _ChatTimelineItem.message(message)),
-    ]..sort((a, b) {
-        final byTime = a.timestamp.compareTo(b.timestamp);
-        if (byTime != 0) return byTime;
-        if (a.isJoin == b.isJoin) return 0;
-        return a.isJoin ? -1 : 1;
-      });
 
     String? prevMessageSenderId;
 
-    for (final item in timeline) {
-      if (item.isJoin) {
-        final member = item.member!;
-        final rawName = member.displayName.trim();
-        final name = rawName.isEmpty ? '사용자' : rawName;
-        widgets.add(_JoinNoticeChip(text: _joinNoticeText(name)));
-        widgets.add(const SizedBox(height: 16));
-        prevMessageSenderId = null;
-        continue;
-      }
-
-      final m = item.message!;
-      if (m.isExitNotice) {
+    for (final m in messages) {
+      if (m.isJoinNotice || m.isExitNotice) {
         widgets.add(_JoinNoticeChip(text: m.text));
         widgets.add(const SizedBox(height: 16));
         prevMessageSenderId = null;
@@ -268,36 +247,20 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-class _ChatTimelineItem {
-  _ChatTimelineItem.message(this.message)
-      : assert(message != null),
-        member = null,
-        timestamp = message!.createdAt;
-
-  _ChatTimelineItem.join(this.member)
-      : assert(member != null),
-        message = null,
-        timestamp = member!.joinedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-
-  final OrderMessage? message;
-  final OrderMember? member;
-  final DateTime timestamp;
-
-  bool get isJoin => member != null;
-}
-
 class _ChatHeader extends StatelessWidget {
   const _ChatHeader({
     required this.title,
     required this.participantCount,
     required this.onTapBack,
     required this.onTapExit,
+    required this.showExit,
   });
 
   final String title;
   final int participantCount;
   final VoidCallback onTapBack;
   final VoidCallback onTapExit;
+  final bool showExit;
 
   @override
   Widget build(BuildContext context) {
@@ -349,32 +312,34 @@ class _ChatHeader extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: onTapExit,
-            child: Container(
-              width: 45,
-              height: 37,
-              decoration: ShapeDecoration(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(
-                    width: 0.62,
-                    color: Colors.black.withValues(alpha: 0.10),
+          if (showExit) ...[
+            const SizedBox(width: 8),
+            InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: onTapExit,
+              child: Container(
+                width: 45,
+                height: 37,
+                decoration: ShapeDecoration(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      width: 0.62,
+                      color: Colors.black.withValues(alpha: 0.10),
+                    ),
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  borderRadius: BorderRadius.circular(16),
                 ),
-              ),
-              child: Center(
-                child: SvgPicture.asset(
-                  'lib/assets/icons/exit.svg',
-                  width: 21,
-                  height: 21,
+                child: Center(
+                  child: SvgPicture.asset(
+                    'lib/assets/icons/exit.svg',
+                    width: 21,
+                    height: 21,
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

@@ -49,7 +49,8 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> joinOrder(String orderId, String uid) => _repo.joinOrder(orderId: orderId, uid: uid);
+  Future<bool> joinOrder(String orderId, String uid) =>
+      _repo.joinOrder(orderId: orderId, uid: uid);
   Future<void> leaveOrder(String orderId, String uid) => _repo.leaveOrder(orderId: orderId, uid: uid);
 
 }

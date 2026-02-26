@@ -78,10 +78,10 @@ class OrderRepository {
     // ⚠️ 절대 orders.updatedAt을 클라에서 올리면 안 됨 (서버 트리거가 처리)
   }
 
-  Future<void> joinOrder({required String orderId, required String uid}) async {
+  Future<bool> joinOrder({required String orderId, required String uid}) async {
     final ref = _svc.ordersCol().doc(orderId);
 
-    await FirebaseFirestore.instance.runTransaction((tx) async {
+    return FirebaseFirestore.instance.runTransaction<bool>((tx) async {
       final snap = await tx.get(ref);
       if (!snap.exists) throw Exception('order not found');
 
@@ -89,12 +89,13 @@ class OrderRepository {
       final memberIds = List<String>.from((data['memberIds'] ?? []) as List);
       final already = memberIds.contains(uid);
 
-      if (already) return; // ✅ 멱등: 이미 멤버면 성공 처리
+      if (already) return false; // ✅ 멱등: 이미 멤버면 성공 처리
 
       tx.update(ref, {
         'memberIds': FieldValue.arrayUnion([uid]),
         'memberCount': ((data['memberCount'] ?? memberIds.length) + 1),
       });
+      return true;
     });
   }
 

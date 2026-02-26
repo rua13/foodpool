@@ -118,6 +118,24 @@ class OrderChatService {
     });
   }
 
+  Future<void> sendJoinNoticeMessage({
+    required String orderId,
+    required String text,
+  }) async {
+    final uid = _requireUid();
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return;
+
+    final msgRef = _messagesCol(orderId).doc();
+    await msgRef.set({
+      'orderId': orderId,
+      'senderId': uid,
+      'text': trimmed,
+      'messageType': 'system_join',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   // ---------- members (옵션 A 핵심) ----------
   /// 채팅에서 프로필을 보여주기 위한 "주문방 멤버 프로필" upsert
   ///

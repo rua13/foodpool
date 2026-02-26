@@ -65,22 +65,38 @@ class OrderDetailScreen extends StatelessWidget {
   Future<void> _joinAndGoChat(BuildContext context) async {
     // 여기 수정함
     final auth = context.read<AppAuthProvider>();
+    final orderProvider = context.read<OrderProvider>();
+    final chatService = context.read<OrderChatService>();
     final u = auth.user!;
     final displayName = u.displayName?.trim().isNotEmpty == true
         ? u.displayName!.trim()
         : (u.email?.split('@').first ?? '사용자');
     final photoUrl = (u.photoURL ?? '').trim();
+    String joinNoticeText(String rawName) {
+      final name = rawName.trim();
+      if (name.isEmpty) return '참여자님이 참여하셨습니다.';
+      if (name.endsWith('님')) return '$name이 참여하셨습니다.';
+      return '$name님이 참여하셨습니다.';
+    }
 
     try {
       // 1) join 호출(서버가 멱등 join이면 이미 참여여도 그냥 성공)
-      await context.read<OrderProvider>().joinOrder(orderId, u.uid);
+      final didJoin = await orderProvider.joinOrder(orderId, u.uid);
 
       // 2) ✅ members/{uid} 업서트 (프로필용) (여기도 수정)
-      await context.read<OrderChatService>().upsertMyMemberProfile(
+      await chatService.upsertMyMemberProfile(
           orderId: orderId,
           displayName: displayName,
           photoUrl: photoUrl,
         );
+
+      // 3) 실제로 새로 합류한 경우에만 참여 로그를 남긴다.
+      if (didJoin) {
+        await chatService.sendJoinNoticeMessage(
+              orderId: orderId,
+              text: joinNoticeText(displayName),
+            );
+      }
 
       if (!context.mounted) return;
       context.push('/order/$orderId/chat');

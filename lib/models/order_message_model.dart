@@ -40,6 +40,7 @@ class OrderMessage {
   }
 
   bool get isExitNotice => messageType == 'system_exit';
+  bool get isJoinNotice => messageType == 'system_join';
 
   Map<String, dynamic> toMapForCreate({
     required String orderId,
