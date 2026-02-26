@@ -8,6 +8,7 @@ import '../../models/order_message_model.dart';
 import '../../providers/order_chat_provider.dart';
 import '../../repositories/order_chat_repository.dart';
 import '../../models/order_member_model.dart';
+import '../../widgets/exit_confirm_dialog.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
@@ -99,6 +100,12 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _onTapExit() async {
+    final shouldExit = await showExitConfirmDialog(context);
+    if (!mounted || !shouldExit) return;
+    Navigator.of(context).maybePop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final myUid = FirebaseAuth.instance.currentUser?.uid;
@@ -115,7 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
               title: _title,
               participantCount: _participantCount,
               onTapBack: () => Navigator.of(context).maybePop(),
-              onTapExit: () => Navigator.of(context).maybePop(),
+              onTapExit: _onTapExit,
             ),
             Expanded(
               child: chat.isLoading 
