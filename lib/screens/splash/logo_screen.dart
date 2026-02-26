@@ -77,13 +77,22 @@ class _LogoScreenState extends State<LogoScreen>
             )..layout();
             final targetIconOffset =
                 (textPainter.width / 2) + _iconTextGap + (_iconWidth / 2);
-            final leftLaneCenter = -targetIconOffset;
-            final pairCenterX = leftLaneCenter * _bothToLeftProgress.value;
-            final forkX = pairCenterX - (_pairGap / 2);
-            final knifeAtLeft = pairCenterX + (_pairGap / 2);
+            final forkStart = -_pairGap / 2;
+            final knifeStart = _pairGap / 2;
+            final forkFinal = -targetIconOffset;
+            final knifeFinal = targetIconOffset;
+
+            // Phase 1 end: both icons are on the left while keeping their pair gap.
+            final forkAtLeft = forkFinal;
+            final knifeAtLeftEnd = forkFinal + _pairGap;
+
+            final forkX = forkStart +
+                (forkAtLeft - forkStart) * _bothToLeftProgress.value;
+            final knifeAtLeft = knifeStart +
+                (knifeAtLeftEnd - knifeStart) * _bothToLeftProgress.value;
             final knifeX = knifeAtLeft +
-                (targetIconOffset - knifeAtLeft) * _knifeToRightProgress.value;
-            final textFollowKnifeBase = (knifeX - targetIconOffset) * 0.75;
+                (knifeFinal - knifeAtLeft) * _knifeToRightProgress.value;
+            final textFollowKnifeBase = (knifeX - knifeFinal) * 0.75;
             final textX = textFollowKnifeBase *
                 (1 - _textFollowKnifeProgress.value);
 

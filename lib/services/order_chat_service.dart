@@ -124,16 +124,26 @@ class OrderChatService {
     final name = displayName.trim();
     final photo = photoUrl.trim();
 
-    // google photoUrl이 null/빈값일 수도 있으니 빈 문자열 허용 정책이면 아래처럼 저장 가능
-    // rules에서 photoUrl is string을 쓰고 있다면 null로 보내지 않는 게 편함.
-    await ref.set({
-      'uid': uid,
-      'displayName': name.isEmpty ? '사용자' : name,
-      'photoUrl': photo, // 빈 문자열이어도 string
-      // joinedAt은 create 시에만 박히게 하기 위해 merge + 아래 트릭 사용:
-      'joinedAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    // joinedAt은 "최초 1회"만 저장하고, 이후 재진입 시에는 유지한다.
+    await _db.runTransaction((tx) async {
+      final snap = await tx.get(ref);
+      final base = <String, dynamic>{
+        'uid': uid,
+        'displayName': name.isEmpty ? '사용자' : name,
+        'photoUrl': photo, // 빈 문자열이어도 string
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (snap.exists) {
+        tx.set(ref, base, SetOptions(merge: true));
+        return;
+      }
+
+      tx.set(ref, {
+        ...base,
+        'joinedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    });
   }
 
   /// 특정 멤버 프로필 1개 watch (senderId -> 이걸로 UI 표시)
