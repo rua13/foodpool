@@ -128,7 +128,7 @@ class OrderDetailScreen extends StatelessWidget {
             context,
             title: shouldClose
                 ? '새로운 참여자를 받을 수 없게 돼요.\n주문을 마감할까요?'
-                : '다시 참여자를 받을 수 있게 돼요.\n주문 마감을 취소할까요?',
+                : '다시 새로운 참여자를 받을 수 있게 돼요.\n주문 마감을 취소할까요?',
             cancelText: '취소',
             confirmText: shouldClose ? '마감하기' : '마감 취소하기',
           );
@@ -220,7 +220,13 @@ class OrderDetailScreen extends StatelessWidget {
                     children: [
                       InkWell(
                         borderRadius: BorderRadius.circular(12),
-                        onTap: () => context.pop(),
+                        onTap: ()  {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/home'); // 또는 네 홈 라우트(예: /orders)
+                          }
+                        },
                         child: Padding(
                           padding: const EdgeInsets.all(2),
                           child: SvgPicture.asset(

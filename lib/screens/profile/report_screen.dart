@@ -171,11 +171,12 @@ class _ReportScreenState extends State<ReportScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 14),
+            const SizedBox(height: 54),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
+                  SizedBox(width: 1.4,),
                   InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () => context.pop(),
@@ -188,7 +189,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 18),
+                  const SizedBox(width: 20.57),
                   const Text(
                     '신고하기',
                     style: TextStyle(
@@ -203,15 +204,14 @@ class _ReportScreenState extends State<ReportScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 28),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('신고 사유 선택', style: _sectionTitleStyle),
-                    const SizedBox(height: 6),
                     const Text(
                       '해당하는 사유를 하나 선택해주세요.',
                       style: TextStyle(
@@ -224,10 +224,10 @@ class _ReportScreenState extends State<ReportScreen> {
                         letterSpacing: -0.45,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 19),
                     ..._reasons.map(
                       (reason) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: 8),
                         child: _ReasonOption(
                           label: reason,
                           selected: _selectedReason == reason,
@@ -235,10 +235,11 @@ class _ReportScreenState extends State<ReportScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 20),
                     Text('상세 내용', style: _sectionTitleStyle),
                     const SizedBox(height: 10),
                     Container(
+                      height: 165,
                       decoration: ShapeDecoration(
                         shape: RoundedRectangleBorder(
                           side: const BorderSide(width: 1, color: Color(0xFFCECECE)),
@@ -274,7 +275,7 @@ class _ReportScreenState extends State<ReportScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 28),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -294,7 +295,7 @@ class _ReportScreenState extends State<ReportScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 13),
                     InkWell(
                       borderRadius: BorderRadius.circular(16),
                       onTap: _pickEvidenceImages,
@@ -334,7 +335,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           ),
                         ),
                       ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 26.2),
                     SizedBox(
                       width: double.infinity,
                       height: 48,
@@ -393,7 +394,7 @@ class _ReasonOption extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        height: 48,
+        height: 46,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: ShapeDecoration(
           shape: RoundedRectangleBorder(

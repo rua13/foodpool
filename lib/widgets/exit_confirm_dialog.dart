@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 Future<bool> showExitConfirmDialog(
   BuildContext context, {
@@ -35,7 +36,7 @@ class _ExitConfirmDialog extends StatelessWidget {
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 34),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 33),
       child: Container(
         width: 333.16,
         padding: const EdgeInsets.fromLTRB(20, 34, 20, 20),
@@ -61,10 +62,11 @@ class _ExitConfirmDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.black,
-                fontSize: 18,
+                fontSize: 17.5,
                 fontFamily: 'Pretendard Variable',
                 fontWeight: FontWeight.w500,
-                height: 1.09,
+                height: 1.3,
+                wordSpacing: -0.3
               ),
             ),
             const SizedBox(height: 36),
@@ -76,7 +78,7 @@ class _ExitConfirmDialog extends StatelessWidget {
                     backgroundColor: const Color(0xFFF9F5F2),
                     textColor: const Color(0xFF0A0A0A),
                     fontWeight: FontWeight.w500,
-                    onTap: () => Navigator.of(context).pop(false),
+                    onTap: () => context.pop(false),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -86,7 +88,7 @@ class _ExitConfirmDialog extends StatelessWidget {
                     backgroundColor: const Color(0xFFFF5751),
                     textColor: Colors.white,
                     fontWeight: FontWeight.w600,
-                    onTap: () => Navigator.of(context).pop(true),
+                    onTap: () => context.pop(true),
                   ),
                 ),
               ],
@@ -133,7 +135,7 @@ class _ExitDialogButton extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: textColor,
-            fontSize: 16,
+            fontSize: 15,
             fontFamily: 'Pretendard Variable',
             fontWeight: fontWeight,
           ),

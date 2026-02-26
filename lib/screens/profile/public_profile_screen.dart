@@ -29,7 +29,7 @@ class PublicProfileScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 14),
+            const SizedBox(height: 54),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
@@ -60,7 +60,7 @@ class PublicProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 22),
             Container(
               width: 361,
               height: 136,

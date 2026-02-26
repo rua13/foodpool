@@ -360,24 +360,29 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(label, required: requiredField),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          style: GoogleFonts.inter(
-            color: const Color(0xFF0A0A0A),
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            letterSpacing: -0.31,
+        const SizedBox(height: 7.76),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: 56
           ),
-          decoration: _fieldDecoration(
-            hintText: hintText,
-            borderColor: borderColor,
-            prefixIcon: prefixIcon,
+          child: TextFormField(
+            controller: controller,
+            style: GoogleFonts.inter(
+              color: const Color(0xFF0A0A0A),
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              letterSpacing: -0.31,
+            ),
+            decoration: _fieldDecoration(
+              hintText: hintText,
+              borderColor: borderColor,
+              prefixIcon: prefixIcon,
+            ),
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
+            validator: validator,
+            onChanged: (_) => setState(() {}),
           ),
-          keyboardType: keyboardType,
-          inputFormatters: inputFormatters,
-          validator: validator,
-          onChanged: (_) => setState(() {}),
         ),
       ],
     );
@@ -396,7 +401,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 14),
+            const SizedBox(height: 54),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
@@ -413,7 +418,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 18),
+                  const SizedBox(width: 20.57),
                   Text(
                     _screenTitle,
                     style: GoogleFonts.inter(
@@ -427,7 +432,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 26),
             Expanded(
               child: Form(
                 key: _formKey,
@@ -445,9 +450,9 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? '필수 항목입니다.' : null,
                       ),
-                      const SizedBox(height: 34),
+                      const SizedBox(height: 26.24),
                       _buildLabel('주문 시간', required: true),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 7.76),
                       InkWell(
                         onTap: _pickTime,
                         borderRadius: BorderRadius.circular(16),
@@ -484,7 +489,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 34),
+                      const SizedBox(height: 26.24),
                       _buildTextField(
                         label: '가게명',
                         requiredField: true,
@@ -498,7 +503,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? '필수 항목입니다.' : null,
                       ),
-                      const SizedBox(height: 34),
+                      const SizedBox(height: 26.24),
                       _buildTextField(
                         label: '최소 주문 금액',
                         requiredField: true,
@@ -513,7 +518,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9,원 ]'))],
                         validator: (v) => _parseMoney(v ?? '') == null ? '숫자를 입력해주세요.' : null,
                       ),
-                      const SizedBox(height: 34),
+                      const SizedBox(height: 26.24),
                       _buildTextField(
                         label: '픽업 위치',
                         requiredField: true,
@@ -527,7 +532,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? '필수 항목입니다.' : null,
                       ),
-                      const SizedBox(height: 34),
+                      const SizedBox(height: 26.24),
                       _buildTextField(
                         label: '배달비',
                         requiredField: true,
@@ -542,7 +547,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9,원 ]'))],
                         validator: (v) => _parseMoney(v ?? '') == null ? '숫자를 입력해주세요.' : null,
                       ),
-                      const SizedBox(height: 34),
+                      const SizedBox(height: 26.24),
                       _buildTextField(
                         label: '입금 방법',
                         requiredField: true,
@@ -551,14 +556,14 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                         validator: (v) =>
                             (v == null || v.trim().isEmpty) ? '필수 항목입니다.' : null,
                       ),
-                      const SizedBox(height: 34),
+                      const SizedBox(height: 26.24),
                       _buildTextField(
                         label: '주문 링크',
                         requiredField: false,
                         controller: _linkCtrl,
                         hintText: 'https://...',
                       ),
-                      const SizedBox(height: 34),
+                      const SizedBox(height: 30),
                       _buildLabel('추가 내용'),
                       const SizedBox(height: 8),
                       Container(
@@ -790,7 +795,7 @@ class _CreateOrderSuccessDialog extends StatelessWidget {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF5751),
                   foregroundColor: Colors.white,

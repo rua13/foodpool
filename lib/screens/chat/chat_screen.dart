@@ -150,6 +150,7 @@ class _ChatScreenState extends State<ChatScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            SizedBox(height: 39,),
             _ChatHeader(
               title: _title,
               participantCount: _participantCount,
@@ -157,6 +158,7 @@ class _ChatScreenState extends State<ChatScreen> {
               onTapExit: _onTapExit,
               showExit: !_isOwner,
             ),
+            SizedBox(height: 6,),
             Expanded(
               child: chat.isLoading 
               ? const Center(child: CircularProgressIndicator())
@@ -280,13 +282,14 @@ class _ChatHeader extends StatelessWidget {
               height: 22,
             ),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 20.57),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height: 2,),
                   Text(
                     title,
                     style: const TextStyle(
@@ -314,27 +317,30 @@ class _ChatHeader extends StatelessWidget {
           ),
           if (showExit) ...[
             const SizedBox(width: 8),
-            InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: onTapExit,
-              child: Container(
-                width: 45,
-                height: 37,
-                decoration: ShapeDecoration(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      width: 0.62,
-                      color: Colors.black.withValues(alpha: 0.10),
+            Padding(
+              padding: const EdgeInsets.only(top: 7.0),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: onTapExit,
+                child: Container(
+                  width: 45,
+                  height: 37,
+                  decoration: ShapeDecoration(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                        width: 0.62,
+                        color: Colors.black.withValues(alpha: 0.10),
+                      ),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    borderRadius: BorderRadius.circular(16),
                   ),
-                ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    'lib/assets/icons/exit.svg',
-                    width: 21,
-                    height: 21,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      'lib/assets/icons/exit.svg',
+                      width: 21,
+                      height: 21,
+                    ),
                   ),
                 ),
               ),
@@ -353,6 +359,7 @@ class _ChatGuideCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
+      height: 136.78,
       padding: const EdgeInsets.fromLTRB(17, 17, 17, 17),
       decoration: ShapeDecoration(
         color: const Color(0x19FFB4A2),
@@ -393,37 +400,40 @@ class _ChatGuideCard extends StatelessWidget {
                   '• 실명 기반 채팅방입니다.',
                   style: TextStyle(
                     color: Color(0xB20A0A0A),
-                    fontSize: 12.32,
+                    fontSize: 12.324,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                     height: 1.33,
                   ),
                 ),
+                SizedBox(height: 1.11),
                 Text(
                   '• 참여 취소는 단계에 따라 제한될 수 있습니다.',
                   style: TextStyle(
                     color: Color(0xB20A0A0A),
-                    fontSize: 12.32,
+                    fontSize: 12.324,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                     height: 1.33,
                   ),
                 ),
+                SizedBox(height: 1.11),
                 Text(
-                  '응답이 없을 경우 참여가 취소될 수 있습니다.',
+                  '• 응답이 없을 경우 참여가 취소될 수 있습니다.',
                   style: TextStyle(
                     color: Color(0xB20A0A0A),
-                    fontSize: 12.32,
+                    fontSize: 12.324,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                     height: 1.33,
                   ),
                 ),
+                SizedBox(height: 1.11),
                 Text(
                   '• 개인정보 공유는 신중하게 해주시길 바랍니다.',
                   style: TextStyle(
                     color: Color(0xB20A0A0A),
-                    fontSize: 12.32,
+                    fontSize: 12.324,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                     height: 1.33,
