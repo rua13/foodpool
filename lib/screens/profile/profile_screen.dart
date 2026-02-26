@@ -87,11 +87,12 @@ class ProfileScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 14),
+            const SizedBox(height: 54),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 21),
               child: Row(
                 children: [
+                  SizedBox(width: 4.4,),
                   InkWell(
                     borderRadius: BorderRadius.circular(12),
                     onTap: () => context.pop(),
@@ -104,7 +105,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 18),
+                  const SizedBox(width: 20.57),
                   Text(
                     '마이페이지',
                     style: GoogleFonts.inter(
@@ -118,7 +119,7 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18.92),
             Expanded(
               child: StreamBuilder<AppUser?>(
                 stream: userRepo.watchUser(uid),
@@ -151,7 +152,7 @@ class ProfileScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             _ProfileCard(user: appUser),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 20.5),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 4),
                               child: Column(
@@ -229,7 +230,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(28, 0, 28, 18),
+              padding: const EdgeInsets.fromLTRB(28, 12, 28, 18),
               child: SizedBox(
                 width: double.infinity,
                 height: 48,
@@ -285,72 +286,76 @@ class _ProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasPhoto = user.photoUrl != null && user.photoUrl!.isNotEmpty;
 
-    return Container(
-      height: 136,
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 17),
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        shadows: const [
-          BoxShadow(
-            color: Color(0x19000000),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: 136
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 88.8,
-            height: 88.8,
-            decoration: ShapeDecoration(
-              shape: OvalBorder(
-                side: const BorderSide(width: 2.5, color: Colors.white),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.only(left: 17.42),
+        decoration: ShapeDecoration(
+          color: const Color(0xFFFFFFFF),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shadows: const [
+            BoxShadow(
+              color: Color(0x19000000),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 88.8,
+              height: 88.8,
+              decoration: ShapeDecoration(
+                shape: OvalBorder(
+                  side: const BorderSide(width: 2.5, color: Colors.white),
+                ),
+                color: const Color(0xFFF3F3F3),
+                image: hasPhoto
+                    ? DecorationImage(
+                        image: NetworkImage(user.photoUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              color: const Color(0xFFF3F3F3),
-              image: hasPhoto
-                  ? DecorationImage(
-                      image: NetworkImage(user.photoUrl!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
+              child: hasPhoto
+                  ? null
+                  : Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: SvgPicture.asset('lib/assets/icons/profile.svg'),
+                    ),
             ),
-            child: hasPhoto
-                ? null
-                : Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: SvgPicture.asset('lib/assets/icons/profile.svg'),
+            const SizedBox(width: 15.79),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.displayName.isEmpty ? '-' : user.displayName,
+                    style: GoogleFonts.inter(
+                      color: Colors.black,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.displayName.isEmpty ? '-' : user.displayName,
-                  style: GoogleFonts.inter(
-                    color: Colors.black,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
+                  const SizedBox(height: 5.47),
+                  Text(
+                    user.email.isEmpty ? '-' : user.email,
+                    style: GoogleFonts.inter(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  user.email.isEmpty ? '-' : user.email,
-                  style: GoogleFonts.inter(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
