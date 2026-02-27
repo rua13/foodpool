@@ -232,7 +232,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 '/profile/view',
                 extra: PublicProfileData(
                   name: senderName,
-                  email: '-',
+                  email: '22200770@handong.ac.kr',
                   photoUrl: senderPhotoUrl,
                 ),
               );
